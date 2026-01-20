@@ -36,17 +36,18 @@ class BaseScaffoldState extends State<BaseScaffold> {
 
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
+      floatingActionButton: SizedBox(
+        height: 65,
+        width: 65,
+        child: FloatingActionButton(
+          onPressed: () => Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const AddTransactionScreen()),
-          );
-        },
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        shape: const CircleBorder(),
-        elevation: 8,
-        child: const Icon(Icons.add, size: 30),
+          ),
+          backgroundColor: colorScheme.primary,
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)), // চারকোনা কিন্তু রাউন্ডেড
+          child: const Icon(Icons.add_rounded, size: 35, color: Colors.white),
+        ),
       ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -54,49 +55,17 @@ class BaseScaffoldState extends State<BaseScaffold> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
-        color: colorScheme.surface,
-        surfaceTintColor: colorScheme.surfaceTint.withAlpha(50),
-        elevation: 8,
-        padding: EdgeInsets.zero,
-
+        padding: const EdgeInsets.symmetric(horizontal: 0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildNavItem(
-                  context,
-                  Icons.home_rounded,
-                  'Home',
-                  0,
-                ),
-                _buildNavItem(
-                  context,
-                  Icons.format_list_bulleted_rounded,
-                  'Transactions',
-                  1,
-                ),
-              ],
-            ),
+            _buildNavItem(context, Icons.home_rounded, 'Home', 0),
+            _buildNavItem(context, Icons.format_list_bulleted_rounded, 'Transactions', 1),
 
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildNavItem(
-                  context,
-                  Icons.bar_chart_rounded,
-                  'Graphs',
-                  2,
-                ),
-                _buildNavItem(
-                  context,
-                  Icons.settings_rounded,
-                  'Settings',
-                  3,
-                ),
-              ],
-            ),
+            const SizedBox(width: 48),
+
+            _buildNavItem(context, Icons.bar_chart_rounded, 'Graphs', 2),
+            _buildNavItem(context, Icons.settings_rounded, 'Settings', 3),
           ],
         ),
       ),
@@ -107,30 +76,29 @@ class BaseScaffoldState extends State<BaseScaffold> {
     final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _selectedIndex == index;
 
-    return Material(
-      type: MaterialType.transparency,
+    return Expanded(
       child: InkWell(
         onTap: () => setSelectedIndex(index),
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          width: MediaQuery.of(context).size.width / 5,
           height: 60,
           alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                size: 26,
+                size: 24,
               ),
               const SizedBox(height: 2),
               Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),

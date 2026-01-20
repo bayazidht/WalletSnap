@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/widgets/transaction_item.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/providers/category_provider.dart';
 import 'package:wallet_snap/models/category_model.dart';
-import 'package:intl/intl.dart';
-
 import '../../data/default_category_icons.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -37,408 +36,227 @@ class _TransactionsScreenState extends State<TransactionsScreen>
   }
 
   List<TransactionModel> _getFilteredTransactions(
-      List<TransactionModel> allTransactions,
-      int tabIndex,
-      ) {
-    Iterable<TransactionModel> filteredTransactions = allTransactions;
-    if (tabIndex == 1) {
-      filteredTransactions = allTransactions.where(
-            (tx) => tx.type == TransactionType.income,
-      );
-    } else if (tabIndex == 2) {
-      filteredTransactions = allTransactions.where(
-            (tx) => tx.type == TransactionType.expense,
-      );
-    }
-    if (_selectedType != null) {
-      filteredTransactions = filteredTransactions.where(
-            (tx) => tx.type == _selectedType,
-      );
-    }
-    if (_selectedCategoryId != null) {
-      filteredTransactions = filteredTransactions.where(
-            (tx) => tx.categoryId == _selectedCategoryId,
-      );
-    }
-    if (_selectedDate != null) {
-      filteredTransactions = filteredTransactions.where(
-            (tx) =>
-        tx.date.year == _selectedDate!.year &&
-            tx.date.month == _selectedDate!.month &&
-            tx.date.day == _selectedDate!.day,
-      );
-    }
-    return filteredTransactions.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
-  }
+      List<TransactionModel> allTransactions, int tabIndex) {
+    Iterable<TransactionModel> filtered = allTransactions;
 
-  Future<void> _selectDate(
-      BuildContext context,
-      StateSetter setStateDialog,
-      ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      helpText: 'Select Transaction Date',
-    );
-    if (picked != null) {
-      setStateDialog(() {
-        _selectedDate = picked;
-      });
+    if (tabIndex == 1) filtered = filtered.where((tx) => tx.type == TransactionType.income);
+    if (tabIndex == 2) filtered = filtered.where((tx) => tx.type == TransactionType.expense);
+
+    if (_selectedType != null) filtered = filtered.where((tx) => tx.type == _selectedType);
+    if (_selectedCategoryId != null) filtered = filtered.where((tx) => tx.categoryId == _selectedCategoryId);
+    if (_selectedDate != null) {
+      filtered = filtered.where((tx) =>
+      tx.date.year == _selectedDate!.year &&
+          tx.date.month == _selectedDate!.month &&
+          tx.date.day == _selectedDate!.day);
     }
+
+    return filtered.toList()..sort((a, b) => b.date.compareTo(a.date));
   }
 
   void _showFilterBottomSheet(ColorScheme colorScheme) {
-    final categoryProvider = Provider.of<CategoryProvider>(
-      context,
-      listen: false,
-    );
-
-    final Map<String, TransactionType?> typeOptions = {
-      'All Types': null,
-      'Income': TransactionType.income,
-      'Expense': TransactionType.expense,
-    };
+    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateSheet) {
-            List<CategoryModel> currentCategoryModels = [];
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateSheet) {
+          List<CategoryModel> currentCategories = _selectedType == TransactionType.income
+              ? categoryProvider.incomeCategories
+              : _selectedType == TransactionType.expense
+              ? categoryProvider.expenseCategories
+              : [];
 
-            if (_selectedType == TransactionType.income) {
-              currentCategoryModels.addAll(
-                categoryProvider.incomeCategories,
-              );
-            } else if (_selectedType == TransactionType.expense) {
-              currentCategoryModels.addAll(
-                categoryProvider.expenseCategories,
-              );
-            }
-
-            final List<DropdownMenuItem<String>> categoryItems = [
-              const DropdownMenuItem(
-                value: null,
-                child: Text('All Categories'),
-              ),
-              ...currentCategoryModels.map((CategoryModel category) {
-                final IconData? iconData = availableIcons[category.iconName];
-                return DropdownMenuItem<String>(
-                  value: category.id,
-                  child: Row(
-                    children: [
-                      Icon(iconData, size: 20, color: colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 10),
-                      Text(category.name),
-                    ],
-                  ),
-                );
-              }),
-            ];
-
-            return Padding(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Filter Transactions',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 20),
-                  const Text(
-                    'Transaction Type',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<TransactionType?>(
-                    borderRadius: BorderRadius.circular(15),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
-                      ),
-                    ),
-                    initialValue: _selectedType,
-                    hint: const Text('All Types'),
-                    items: typeOptions.entries.map((entry) {
-                      return DropdownMenuItem<TransactionType?>(
-                        value: entry.value,
-                        child: Text(entry.key),
-                      );
-                    }).toList(),
-                    onChanged: (TransactionType? newValue) {
-                      setStateSheet(() {
-                        _selectedType = newValue;
-                        _selectedCategoryId = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Category Filter',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Tooltip(
-                    message: _selectedType == null
-                        ? 'Select Transaction Type first'
-                        : 'Select Category',
-                    child: DropdownButtonFormField<String?>(
-                      borderRadius: BorderRadius.circular(15),
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        enabled: _selectedType != null,
-                        fillColor: _selectedType == null
-                            ? colorScheme.surfaceContainer
-                            : colorScheme.surface,
-                        filled: true,
-                      ),
-                      initialValue: _selectedCategoryId,
-                      items: categoryItems,
-                      onChanged: _selectedType == null
-                          ? null
-                          : (String? newValue) {
-                        setStateSheet(() {
-                          _selectedCategoryId = newValue;
-                        });
+          return Container(
+            padding: EdgeInsets.only(
+              top: 20, left: 24, right: 24,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+            ),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: colorScheme.outlineVariant, borderRadius: BorderRadius.circular(10)))),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Filter', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                    TextButton(
+                      onPressed: () {
+                        setState(() { _selectedCategoryId = null; _selectedDate = null; _selectedType = null; });
+                        Navigator.pop(context);
                       },
-                      hint: Text(
-                        _selectedType == null
-                            ? 'Select Type above'
-                            : 'All Categories',
-                      ),
+                      child: Text('Clear All', style: TextStyle(color: colorScheme.error)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                _buildFilterLabel('Transaction Type'),
+                const SizedBox(height: 10),
+                _buildDropdown<TransactionType?>(
+                  value: _selectedType,
+                  hint: 'All Types',
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All Types')),
+                    const DropdownMenuItem(value: TransactionType.income, child: Text('Income')),
+                    const DropdownMenuItem(value: TransactionType.expense, child: Text('Expense')),
+                  ],
+                  onChanged: (val) => setStateSheet(() { _selectedType = val; _selectedCategoryId = null; }),
+                ),
+
+                const SizedBox(height: 20),
+                _buildFilterLabel('Category'),
+                const SizedBox(height: 10),
+                _buildDropdown<String?>(
+                  value: _selectedCategoryId,
+                  hint: _selectedType == null ? 'Select type first' : 'All Categories',
+                  enabled: _selectedType != null,
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All Categories')),
+                    ...currentCategories.map((cat) => DropdownMenuItem(
+                      value: cat.id,
+                      child: Row(children: [Icon(availableIcons[cat.iconName], size: 18), const SizedBox(width: 10), Text(cat.name)]),
+                    )),
+                  ],
+                  onChanged: (val) => setStateSheet(() => _selectedCategoryId = val),
+                ),
+
+                const SizedBox(height: 20),
+                _buildFilterLabel('Date'),
+                const SizedBox(height: 10),
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime.now());
+                    if (picked != null) setStateSheet(() => _selectedDate = picked);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest.withOpacity(0.3), borderRadius: BorderRadius.circular(16)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_selectedDate == null ? 'Select Date' : DateFormat('dd MMM yyyy').format(_selectedDate!), style: TextStyle(color: colorScheme.onSurface)),
+                        Icon(Icons.calendar_today_rounded, size: 18, color: colorScheme.primary),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Specific Date',
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () { setState(() {}); Navigator.pop(context); },
+                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    child: const Text('Apply Filter', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, setStateSheet),
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.edit_calendar),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 10,
-                          ),
-                        ),
-                        controller: TextEditingController(
-                          text: _selectedDate == null
-                              ? 'Select a specific date'
-                              : DateFormat(
-                            'dd MMM yyyy',
-                          ).format(_selectedDate!),
-                        ),
-                        style: TextStyle(
-                          color: _selectedDate == null
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.clear_all),
-                        label: const Text('Clear'),
-                        onPressed: () {
-                          setState(() {
-                            _selectedCategoryId = null;
-                            _selectedDate = null;
-                            _selectedType = null;
-                          });
-                          setStateSheet(() {
-                            _selectedCategoryId = null;
-                            _selectedDate = null;
-                            _selectedType = null;
-                          });
-                          Navigator.pop(context);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.error,
-                          side: BorderSide(color: colorScheme.error),
-                        ),
-                      ),
-                      FilledButton.icon(
-                        icon: const Icon(Icons.check_rounded),
-                        label: const Text('Apply Filter'),
-                        onPressed: () {
-                          setState(() {});
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterLabel(String label) => Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey));
+
+  Widget _buildDropdown<T>({required T value, required String hint, required List<DropdownMenuItem<T>> items, required Function(T) onChanged, bool enabled = true}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: enabled ? Colors.transparent : Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value, isExpanded: true, hint: Text(hint), items: items,
+          onChanged: enabled ? (val) => onChanged(val as T) : null,
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
-    final allTransactions = transactionProvider.transactions;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Transactions'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        elevation: 1,
+        title: const Text('Transactions', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list_rounded, color: colorScheme.onPrimary),
             onPressed: () => _showFilterBottomSheet(colorScheme),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: colorScheme.primaryContainer.withOpacity(0.4), shape: BoxShape.circle),
+              child: Icon(Icons.tune_rounded, size: 20, color: colorScheme.primary),
+            ),
           ),
+          const SizedBox(width: 8),
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorWeight: 4,
-          indicatorColor: colorScheme.onPrimary,
-          labelColor: colorScheme.onPrimary,
-          unselectedLabelColor: colorScheme.onPrimary.withAlpha(178),
-          tabs: const [
-            Tab(text: 'All'),
-            Tab(text: 'Income'),
-            Tab(text: 'Expense'),
-          ],
+          indicatorColor: colorScheme.primary,
+          indicatorWeight: 3,
+          labelColor: colorScheme.primary,
+          unselectedLabelColor: Colors.grey,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          indicatorSize: TabBarIndicatorSize.label,
+          tabs: const [Tab(text: 'All'), Tab(text: 'Income'), Tab(text: 'Expense')],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildTransactionList(allTransactions, 0, colorScheme),
-          _buildTransactionList(allTransactions, 1, colorScheme),
-          _buildTransactionList(allTransactions, 2, colorScheme),
+          _buildTransactionList(transactionProvider.transactions, 0, colorScheme),
+          _buildTransactionList(transactionProvider.transactions, 1, colorScheme),
+          _buildTransactionList(transactionProvider.transactions, 2, colorScheme),
         ],
       ),
     );
   }
 
-  Widget _buildTransactionList(
-      List<TransactionModel> allTransactions,
-      int tabIndex,
-      ColorScheme colorScheme,
-      ) {
-    final filteredTransactions = _getFilteredTransactions(
-      allTransactions,
-      tabIndex,
-    );
+  Widget _buildTransactionList(List<TransactionModel> all, int index, ColorScheme colorScheme) {
+    final filtered = _getFilteredTransactions(all, index);
 
-    if (filteredTransactions.isEmpty) {
-      final type = tabIndex == 1
-          ? 'Income'
-          : tabIndex == 2
-          ? 'Expense'
-          : 'Transactions';
-      final icon = tabIndex == 1
-          ? Icons.payments_outlined
-          : tabIndex == 2
-          ? Icons.shopping_bag_outlined
-          : Icons.description;
-      final iconColor = tabIndex == 1 ? colorScheme.primary : colorScheme.error;
-
+    if (filtered.isEmpty) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 60, color: iconColor.withAlpha(153)),
-              const SizedBox(height: 16),
-              Text(
-                'No $type yet. Start adding your financial records!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              if (_selectedCategoryId != null ||
-                  _selectedDate != null ||
-                  _selectedType != null)
-                Text(
-                  '(Filters applied)',
-                  style: TextStyle(fontSize: 14, color: colorScheme.outline),
-                ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt_long_rounded, size: 80, color: colorScheme.outlineVariant),
+            const SizedBox(height: 16),
+            Text('No transactions found', style: TextStyle(fontSize: 18, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
+          ],
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-      child: ListView.builder(
-        itemCount: filteredTransactions.length,
-        itemBuilder: (context, index) {
-          final transaction = filteredTransactions[index];
-
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 6.0),
-            color: colorScheme.surfaceContainerLow,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: colorScheme.outline.withAlpha(60),
-                width: 1.0,
-              ),
-            ),
-            elevation: 0,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: TransactionItem(tx: transaction),
-            ),
-          );
-        },
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: filtered.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        ),
+        child: TransactionItem(tx: filtered[index]),
       ),
     );
   }

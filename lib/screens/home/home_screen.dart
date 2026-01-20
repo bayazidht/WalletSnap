@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
-import 'package:wallet_snap/widgets/dynamic_header.dart';
-import 'package:wallet_snap/widgets/summary_card.dart';
 import 'package:wallet_snap/widgets/transaction_item.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../providers/settings_provider.dart';
+import '../../widgets/summary_card.dart';
 import 'base_scaffold.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,13 +15,12 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TransactionProvider>(context);
+    final user = FirebaseAuth.instance.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final totalBalance = provider.totalBalance;
-    final totalIncome = provider.totalIncome;
-    final totalExpense = provider.totalExpense;
-
-    final recentTransactions = provider.transactions.reversed.take(2).toList();
+    final allTransactions = List<TransactionModel>.from(provider.transactions);
+    allTransactions.sort((a, b) => b.date.compareTo(a.date));
+    final recentTransactions = allTransactions.take(4).toList();
 
     Map<String, double> getFilteredSummary(List<TransactionModel> transactions, {bool today = false}) {
       double income = 0.0;
@@ -54,93 +53,262 @@ class HomeScreen extends StatelessWidget {
     final todaySummary = getFilteredSummary(provider.transactions, today: true);
     final monthSummary = getFilteredSummary(provider.transactions, today: false);
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: colorScheme.primary,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.light,
-      ),
-      child: Scaffold(
-        body: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Padding(
+          padding: const EdgeInsets.only(left: 5),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              DynamicHeader(
-                totalBalance: totalBalance,
-                totalIncome: totalIncome,
-                totalExpense: totalExpense,
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SummaryCard(
-                      title: "Today's Summary",
-                      income: todaySummary['income']!,
-                      expense: todaySummary['expense']!,
-                    ),
-                    const SizedBox(height: 8),
-
-                    SummaryCard(
-                      title: "This Month",
-                      income: monthSummary['income']!,
-                      expense: monthSummary['expense']!,
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(7, 20, 7, 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
-                          GestureDetector(
-                            onTap: () {
-                              final BaseScaffoldState? baseScaffoldState = context.findAncestorStateOfType<BaseScaffoldState>();
-                              baseScaffoldState?.setSelectedIndex(1);
-                            },
-                            child: Text('View All', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 14)),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if (provider.transactions.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Text(
-                            'No transactions found. Start by adding a new one!',
-                            style: TextStyle(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ),
-                      )
-                    else
-                      ...recentTransactions.map((tx) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Card(
-                          margin: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: colorScheme.outline.withAlpha(153),
-                              width: 1.0,
-                            ),
-                          ),
-                          elevation: 0,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: TransactionItem(tx: tx),
-                          ),
-                        ),
-                      )),
-                  ],
-                ),
+            children: [
+              const Text('Good morning,', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w400)),
+              Text(
+                user?.displayName?.split(' ')[0] ?? 'WalletSnap',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
+        actions: [
+          _buildActionIcon(Icons.search),
+          _buildActionIcon(Icons.notifications_none_rounded, hasBadge: true),
+          Padding(
+            padding: const EdgeInsets.only(right: 20, left: 8),
+            child: CircleAvatar(
+              radius: 20,
+              backgroundColor: colorScheme.primaryContainer,
+              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : const AssetImage('assets/images/default_user.png') as ImageProvider,
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const SizedBox(height: 10),
+            _buildMainBalanceCard(context, provider.totalBalance),
+
+            const SizedBox(height: 20),
+            _buildAIInsightCard(context, colorScheme),
+
+            const SizedBox(height: 25),
+            SummaryCard(
+              title: "Today's Summary",
+              income: todaySummary['income']!,
+              expense: todaySummary['expense']!,
+            ),
+            SummaryCard(
+              title: "This Month",
+              income: monthSummary['income']!,
+              expense: monthSummary['expense']!,
+            ),
+
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(7, 20, 7, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
+                  GestureDetector(
+                    onTap: () {
+                      final BaseScaffoldState? baseScaffoldState = context.findAncestorStateOfType<BaseScaffoldState>();
+                      baseScaffoldState?.setSelectedIndex(1);
+                    },
+                    child: Text('View All', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 14)),
+                  ),
+                ],
+              ),
+            ),
+
+            if (provider.transactions.isEmpty)
+              const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No transactions found.')))
+            else
+              ...recentTransactions.map((tx) => Container(
+                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TransactionItem(tx: tx),
+              )),
+            const SizedBox(height: 50),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionIcon(IconData icon, {bool hasBadge = false}) {
+    return Container(
+      margin: const EdgeInsets.only(left: 10),
+      decoration: BoxDecoration(color: Colors.grey.withOpacity(0.05), shape: BoxShape.circle),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          IconButton(onPressed: () {}, icon: Icon(icon, size: 24)),
+          if (hasBadge)
+            Positioned(
+              right: 12, top: 12,
+              child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF5C6BC0), shape: BoxShape.circle)),
+            )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainBalanceCard(BuildContext context, double balance) {
+    final currency = Provider.of<SettingsProvider>(context).selectedCurrency;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primary,
+            colorScheme.primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withOpacity(isDark ? 0.1 : 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Balance',
+            style: TextStyle(color: colorScheme.onPrimary.withOpacity(0.7), fontSize: 15),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$currency ${balance.toStringAsFixed(2)}',
+            style: TextStyle(
+              color: colorScheme.onPrimary,
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: colorScheme.onPrimary.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.trending_up, color: Colors.greenAccent, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  '+12% vs last month',
+                  style: TextStyle(
+                    color: colorScheme.onPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAIInsightCard(BuildContext context, ColorScheme colorScheme) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.1 : 0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(Icons.auto_awesome_rounded, color: colorScheme.primary, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AI INSIGHT',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your spending is 12% lower this month. Great job managing your Food & Dining expenses!',
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {},
+              label: const Text('View Details'),
+              icon: const Icon(Icons.chevron_right, size: 18),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

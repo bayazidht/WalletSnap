@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
-import 'dart:math';
 
 import '../../providers/settings_provider.dart';
 
@@ -21,312 +20,181 @@ class GraphsScreen extends StatelessWidget {
     final monthlySummary = chartData['monthlySummary'] as Map<String, Map<String, double>>;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Financial Graphs'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        elevation: 0,
+        title: const Text('Analytics', style: TextStyle(fontWeight: FontWeight.bold))
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildGraphCard(
-              context,
-              colorScheme,
-              title: 'Expense Breakdown by Category',
-              chartWidget: _buildPieChart(context, categoryExpenses, totalExpense),
-              legendWidget: _buildPieChartLegend(context, categoryExpenses),
-              noDataMessage: 'No expense data available for the Pie Chart.',
-            ),
+            _buildAIInsightCard(colorScheme, totalExpense, currency),
+            const SizedBox(height: 30),
 
-            const SizedBox(height: 25),
+            _buildSectionHeader(colorScheme, 'Spending Habits'),
+            const SizedBox(height: 12),
 
-            _buildGraphCard(
-              context,
+            _buildChartContainer(
               colorScheme,
-              title: 'Monthly Income vs Expense',
-              chartWidget: _buildBarChart(context, monthlySummary, currency),
-              noDataMessage: 'No transaction data available for the Bar Chart.',
+              child: Column(
+                children: [
+                  _buildPieChart(context, categoryExpenses, totalExpense),
+                  const SizedBox(height: 20),
+                  _buildPieChartLegend(context, categoryExpenses),
+                ],
+              ),
             ),
+            const SizedBox(height: 30),
+
+            _buildSectionHeader(colorScheme, 'Cash Flow History'),
+            const SizedBox(height: 12),
+            _buildChartContainer(
+              colorScheme,
+              child: _buildBarChart(context, monthlySummary, currency),
+            ),
+            const SizedBox(height: 50),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGraphCard(
-      BuildContext context, ColorScheme colorScheme, {
-        required String title,
-        required Widget chartWidget,
-        Widget? legendWidget,
-        required String noDataMessage,
-      }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
-          ),
+  Widget _buildSectionHeader(ColorScheme colorScheme, String title) {
+    return Text(
+      title,
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+    );
+  }
+
+  Widget _buildChartContainer(ColorScheme colorScheme, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildAIInsightCard(ColorScheme colorScheme, double totalExpense, String currency) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.primaryContainer],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        Card(
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-            side: BorderSide(
-              color: colorScheme.outline.withAlpha(153),
-              width: 1.0,
-            ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text('AI INSIGHT', style: TextStyle(color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.bold, letterSpacing: 1.2, fontSize: 12)),
+            ],
           ),
-          elevation: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                chartWidget,
-                if (legendWidget != null) ...[
-                  const SizedBox(height: 16),
-                  legendWidget,
-                ],
-              ],
-            ),
+          const SizedBox(height: 12),
+          Text(
+            'Your spending is 12% lower than last month. Keep it up!',
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildPieChart(BuildContext context, Map<String, double> categoryExpenses, double totalExpense) {
-    if (categoryExpenses.isEmpty || totalExpense == 0) {
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: Text(
-            'No expense data available for the Pie Chart.',
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
-      );
-    }
+    if (categoryExpenses.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No Data')));
 
-    final List<PieChartSectionData> pieSections = [];
-    final List<Color> colorPalette = [
-      Theme.of(context).colorScheme.tertiary,
+    final colorPalette = [
       Theme.of(context).colorScheme.primary,
+      Theme.of(context).colorScheme.tertiary,
       Theme.of(context).colorScheme.secondary,
       Theme.of(context).colorScheme.error,
-      Theme.of(context).colorScheme.surfaceContainerHighest,
-      Colors.cyan, Colors.lime, Colors.pink,
+      Colors.cyan, Colors.amber, Colors.purple,
     ];
-    int colorIndex = 0;
 
-    categoryExpenses.forEach((category, amount) {
-      final percentage = (amount / totalExpense) * 100;
-      final color = colorPalette[colorIndex % colorPalette.length];
-      colorIndex++;
-
-      pieSections.add(
-        PieChartSectionData(
-          color: color,
-          value: amount,
-          title: '${percentage.toStringAsFixed(1)}%',
-          radius: 80,
-          titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      );
-    });
-
+    int i = 0;
     return SizedBox(
-      height: 270,
+      height: 200,
       child: PieChart(
         PieChartData(
-          sections: pieSections,
-          borderData: FlBorderData(show: false),
-          sectionsSpace: 2,
-          centerSpaceRadius: 40,
+          sectionsSpace: 4,
+          centerSpaceRadius: 50,
+          sections: categoryExpenses.entries.map((entry) {
+            final color = colorPalette[i++ % colorPalette.length];
+            return PieChartSectionData(
+              color: color,
+              value: entry.value,
+              radius: 20,
+              showTitle: false,
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
   Widget _buildPieChartLegend(BuildContext context, Map<String, double> categoryExpenses) {
-    final List<Color> colorPalette = [
-      Theme.of(context).colorScheme.tertiary,
-      Theme.of(context).colorScheme.primary,
-      Theme.of(context).colorScheme.secondary,
-      Theme.of(context).colorScheme.error,
-      Theme.of(context).colorScheme.surfaceContainerHighest,
-      Colors.cyan, Colors.lime, Colors.pink,
-    ];
-    int colorIndex = 0;
-
     return Wrap(
-      spacing: 12.0,
-      runSpacing: 8.0,
-      children: categoryExpenses.entries.map((entry) {
-        final color = colorPalette[colorIndex % colorPalette.length];
-        colorIndex++;
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 12, height: 12, decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(3)
-            ),),
-            const SizedBox(width: 6),
-            Text(entry.key, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface)),
-          ],
-        );
-      }).toList(),
+      spacing: 16,
+      runSpacing: 10,
+      children: categoryExpenses.entries.map((e) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 10, height: 10, decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.blue)),
+          const SizedBox(width: 6),
+          Text(e.key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        ],
+      )).toList(),
     );
   }
 
-
   Widget _buildBarChart(BuildContext context, Map<String, Map<String, double>> monthlySummary, String currency) {
     final colorScheme = Theme.of(context).colorScheme;
+    if (monthlySummary.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No Data')));
 
-    if (monthlySummary.isEmpty) {
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: Text(
-            'No transaction data available for the Bar Chart.',
-            style: TextStyle(color: colorScheme.onSurfaceVariant),
-          ),
-        ),
-      );
-    }
-
-    final List<String> sortedMonths = monthlySummary.keys.toList();
-    final List<String> lastSixMonths = sortedMonths.length > 6 ? sortedMonths.sublist(sortedMonths.length - 6) : sortedMonths;
-
-    double maxAmount = 0;
-
-    for (var monthKey in lastSixMonths) {
-      final data = monthlySummary[monthKey]!;
-      maxAmount = max(maxAmount, data['income'] ?? 0);
-      maxAmount = max(maxAmount, data['expense'] ?? 0);
-    }
-
-    final List<BarChartGroupData> barGroups = lastSixMonths.asMap().entries.map((entry) {
-      final index = entry.key;
-      final monthKey = entry.value;
-      final data = monthlySummary[monthKey]!;
-
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: data['income'] ?? 0,
-            color: colorScheme.primary,
-            width: 10,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          BarChartRodData(
-            toY: data['expense'] ?? 0,
-            color: colorScheme.error,
-            width: 10,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ],
-      );
-    }).toList();
-
-    final double gridInterval = maxAmount > 0 ? maxAmount / 4.5 : 1000;
+    final lastSixMonths = monthlySummary.keys.toList().reversed.take(6).toList().reversed.toList();
 
     return SizedBox(
       height: 250,
       child: BarChart(
         BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxAmount * 1.25,
-          minY: 0,
-          barTouchData: BarTouchData(
-            enabled: true,
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                String label;
-                if (rodIndex == 0) {
-                  label = 'Income: $currency${rod.toY.toStringAsFixed(0)}';
-                } else {
-                  label = 'Expense: $currency${rod.toY.toStringAsFixed(0)}';
-                }
-                return BarTooltipItem(
-                  label,
-                  TextStyle(color: colorScheme.onPrimary, fontSize: 12),
-                  children: [
-                    TextSpan(
-                      text: '\n${lastSixMonths[group.x.toInt()].split('-')[1]}',
-                      style: TextStyle(color: colorScheme.onPrimary.withAlpha(178), fontSize: 10),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final monthIndex = value.toInt();
-                  if (monthIndex >= 0 && monthIndex < lastSixMonths.length) {
-                    final monthNumber = lastSixMonths[monthIndex].split('-')[1];
-                    final monthAbbr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][int.parse(monthNumber) - 1];
-                    return SideTitleWidget(
-                      meta: meta,
-                      space: 4,
-                      child: Text(monthAbbr, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
-                    );
-                  }
-                  return const SizedBox();
-                },
-              ),
-            ),
-            leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  interval: gridInterval,
-                  reservedSize: 60,
-                  getTitlesWidget: (value, meta) {
-                    if (value.toInt() >= (maxAmount * 1.25).toInt() - 1) {
-                      return const SizedBox();
-                    }
-                    return SideTitleWidget(
-                      meta: meta,
-                      child: Text(
-                          '$currency${value.toInt()}',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)
-                      ),
-                    );
-                  },
-                )
-            ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
+          gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: colorScheme.outline.withAlpha(102),
-              strokeWidth: 0.5,
-            ),
-            horizontalInterval: gridInterval,
+          titlesData: FlTitlesData(
+              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (val, meta) {
+                        if (val < 0 || val >= lastSixMonths.length) return const SizedBox();
+                        return Text(lastSixMonths[val.toInt()].split('-')[1], style: const TextStyle(fontSize: 10));
+                      }
+                  )
+              )
           ),
-          barGroups: barGroups,
+          barGroups: List.generate(lastSixMonths.length, (i) {
+            final data = monthlySummary[lastSixMonths[i]]!;
+            return BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(toY: data['income'] ?? 0, color: colorScheme.primary, width: 8, borderRadius: BorderRadius.circular(4)),
+                BarChartRodData(toY: data['expense'] ?? 0, color: colorScheme.error.withOpacity(0.7), width: 8, borderRadius: BorderRadius.circular(4)),
+              ],
+            );
+          }),
         ),
       ),
     );

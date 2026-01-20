@@ -19,54 +19,59 @@ class TransactionItem extends StatelessWidget {
     final categoryProvider = Provider.of<CategoryProvider>(context);
 
     final categoryModel = categoryProvider.getCategoryById(tx.categoryId);
-
-    final String categoryName = categoryModel.name;
     final IconData? categoryIconData = availableIcons[categoryModel.iconName];
-
-    final double amount = tx.amount;
     final bool isIncome = tx.type == TransactionType.income;
-    final String date = DateFormat('MMM dd, yyyy').format(tx.date);
 
-    final amountColor = isIncome ? colorScheme.primary : colorScheme.error;
-    final iconColor = isIncome ? colorScheme.primary : colorScheme.error;
-    final bgColor = isIncome
-        ? colorScheme.primary.withAlpha(51)
-        : colorScheme.error.withAlpha(51);
+    final color = isIncome ? Colors.green : Colors.red;
+    final bgColor = color.withOpacity(0.12);
 
-    return ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        backgroundColor: bgColor,
-        child: Icon(categoryIconData,
-          color: iconColor,
-        ),
-      ),
-      title: Text(
-        categoryName,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
-        ),
-      ),
-      subtitle: Text(
-        date,
-        style: TextStyle(color: colorScheme.onSurfaceVariant),
-      ),
-      trailing: Text(
-        '${isIncome ? '+' : '-'}$currency${amount.toStringAsFixed(0)}',
-        style: TextStyle(
-          color: amountColor,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return InkWell(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => TransactionDetailScreen(transaction: tx),
-          ),
+          MaterialPageRoute(builder: (context) => TransactionDetailScreen(transaction: tx)),
         );
       },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              height: 52,
+              width: 52,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(categoryIconData, color: color, size: 26),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    categoryModel.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat('MMM dd, yyyy').format(tx.date),
+                    style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '${isIncome ? '+' : '-'}$currency${tx.amount.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: color,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

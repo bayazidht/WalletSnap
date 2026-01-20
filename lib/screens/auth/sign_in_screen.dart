@@ -7,7 +7,9 @@ import 'package:wallet_snap/services/auth_service.dart';
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
-  void _launchURL(String url) async {}
+  void _launchURL(String url) async {
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,57 +19,73 @@ class SignInScreen extends StatelessWidget {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: colorScheme.primary,
+        statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: colorScheme.surface,
         body: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Container(
-                height: 300,
+                height: MediaQuery.of(context).size.height * 0.45,
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(30, 80, 30, 30),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withRed(100),
+                    ],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withAlpha(50),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(60),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    Icon(
-                      Icons.wallet_rounded,
-                      color: colorScheme.onPrimary,
-                      size: 60,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'WalletSnap',
-                      style: textTheme.headlineLarge?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
+                    Positioned(
+                      right: -50,
+                      top: -20,
+                      child: Icon(
+                        Icons.account_balance_wallet_rounded,
+                        size: 300,
+                        color: Colors.white.withOpacity(0.05),
                       ),
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      'Your smart companion for financial control.',
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimary.withAlpha(170),
-                        fontWeight: FontWeight.w400,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: const Icon(Icons.auto_graph_rounded, color: Colors.white, size: 40),
+                          ),
+                          const SizedBox(height: 30),
+                          Text(
+                            'WalletSnap',
+                            style: textTheme.displayMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.5,
+                            ),
+                          ),
+                          Text(
+                            'Smart Finance, Simple Life.',
+                            style: textTheme.titleMedium?.copyWith(
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -75,113 +93,105 @@ class SignInScreen extends StatelessWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.all(30.0),
+                padding: const EdgeInsets.fromLTRB(35, 40, 35, 20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    const SizedBox(height: 20),
-
                     Text(
-                      'Welcome Back!',
+                      'Welcome Back',
                       style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 10),
-
+                    const SizedBox(height: 12),
                     Text(
-                      'Securely sign in using your Google account to access your dashboard.',
+                      'Manage your expenses with AI-driven insights. Sign in to continue.',
+                      textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
-                        height: 1.4,
+                        height: 1.5,
                       ),
                     ),
+                    const SizedBox(height: 50),
+
+                    _buildGoogleButton(context, authService, colorScheme, textTheme),
 
                     const SizedBox(height: 60),
 
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        await authService.signInWithGoogle();
-                      },
-                      icon: Image.asset(
-                        'assets/images/google_logo.png',
-                        height: 28,
-                      ),
-                      label: Text(
-                        'Continue with Google',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 65),
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shadowColor: colorScheme.primary.withAlpha(50),
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    Divider(color: colorScheme.outlineVariant),
-
-                    const SizedBox(height: 40),
-
-                    Center(
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant.withAlpha(180),
-                            height: 1.5,
-                            fontSize: 12.5,
-                          ),
-                          children: <TextSpan>[
-                            const TextSpan(
-                              text: 'By signing in, you agree to our ',
-                            ),
-                            TextSpan(
-                              text: 'Terms of Service',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                                decoration: TextDecoration.underline,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _launchURL('https://google.com/terms');
-                                },
-                            ),
-                            const TextSpan(text: ' and '),
-                            TextSpan(
-                              text: 'Privacy Policy',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                                decoration: TextDecoration.underline,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _launchURL('https://google.com/privacy');
-                                },
-                            ),
-                            const TextSpan(text: '.'),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildTermsText(colorScheme, textTheme),
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGoogleButton(BuildContext context, AuthService authService, ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: () async => await authService.signInWithGoogle(),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: Image.asset('assets/images/google_logo.png', height: 20),
+            ),
+            const SizedBox(width: 15),
+            Text(
+              'Continue with Google',
+              style: textTheme.titleMedium?.copyWith(
+                color: colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTermsText(ColorScheme colorScheme, TextTheme textTheme) {
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: textTheme.bodySmall?.copyWith(color: colorScheme.outline, fontSize: 12),
+        children: [
+          const TextSpan(text: 'By continuing, you agree to our '),
+          TextSpan(
+            text: 'Terms',
+            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+            recognizer: TapGestureRecognizer()..onTap = () => _launchURL('https://...'),
+          ),
+          const TextSpan(text: ' & '),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
+            recognizer: TapGestureRecognizer()..onTap = () => _launchURL('https://...'),
+          ),
+        ],
       ),
     );
   }

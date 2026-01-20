@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wallet_snap/data/default_currencies.dart';
 import 'package:wallet_snap/services/auth_service.dart';
 import 'package:wallet_snap/screens/settings/manage_categories_screen.dart';
-import '../../models/currency_model.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/about_us_dialog.dart';
@@ -15,270 +15,207 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final userName = user?.displayName ?? 'User';
-    final userEmail = user?.email ?? 'Not set';
-    final userPhotoUrl = user?.photoURL ?? '';
-
-    final authService = Provider.of<AuthService>(context, listen: false);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    final availableCurrencies = defaultCurrencies;
+    final authService = Provider.of<AuthService>(context, listen: false);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        elevation: 0,
+        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         children: <Widget>[
-          _buildAccountCard(
-            context,
-            colorScheme,
-            userName,
-            userEmail,
-            userPhotoUrl,
-          ),
-          const SizedBox(height: 25),
+          _buildProfileSection(context, user, colorScheme),
+          const SizedBox(height: 32),
 
           _buildSettingsGroup(
-            context,
             colorScheme,
-            title: 'General Settings',
-            children: [
-              _buildManageCategoriesTile(context, colorScheme),
-              _buildCurrencyTile(
+            title: 'General',
+            items: [
+              _buildListTile(
                 context,
-                colorScheme,
-                settingsProvider,
-                availableCurrencies,
+                icon: Icons.category_outlined,
+                title: 'Manage Categories',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageCategoriesScreen())),
               ),
+              _buildCurrencyTile(context, colorScheme, settingsProvider),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           _buildSettingsGroup(
-            context,
             colorScheme,
             title: 'Appearance',
-            children: [_buildDarkModeTile(context, colorScheme, themeProvider)],
+            items: [
+              _buildDarkModeTile(context, colorScheme, themeProvider)
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           _buildSettingsGroup(
-            context,
             colorScheme,
-            title: 'About',
-            children: [
-              _buildAppVersionTile(context, colorScheme),
-              _buildAboutUsTile(context, colorScheme),
+            title: 'Information',
+            items: [
+              _buildListTile(
+                context,
+                icon: Icons.info_outline_rounded,
+                title: 'App Version',
+                trailing: Text('1.0.0', style: TextStyle(color: colorScheme.outline, fontWeight: FontWeight.w500)),
+              ),
+              _buildListTile(
+                context,
+                icon: Icons.favorite_border_rounded,
+                title: 'About Us',
+                onTap: () => showCustomAboutDialog(context),
+              ),
             ],
           ),
           const SizedBox(height: 40),
 
           _buildLogoutButton(context, colorScheme, authService),
+          const SizedBox(height: 50),
         ],
       ),
     );
   }
 
-  Widget _buildAccountCard(
-    BuildContext context,
-    ColorScheme colorScheme,
-    String userName,
-    String userEmail,
-    String userPhotoUrl,
-  ) {
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: colorScheme.outline.withAlpha(153), width: 1.0),
+  Widget _buildProfileSection(BuildContext context, User? user, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
       ),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: userPhotoUrl.isNotEmpty
-                  ? NetworkImage(userPhotoUrl)
-                  : Image.asset('assets/images/default_user.png').image,
-            ),
-            const SizedBox(width: 15),
-            Column(
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: colorScheme.primary,
+            backgroundImage: user?.photoURL != null
+                ? NetworkImage(user!.photoURL!)
+                : const AssetImage('assets/images/default_user.png') as ImageProvider,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  userName,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
+                  user?.displayName ?? 'WalletSnap User',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
-                  userEmail,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  user?.email ?? 'No email available',
+                  style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSettingsGroup(
-    BuildContext context,
-    ColorScheme colorScheme, {
-    required String title,
-    required List<Widget> children,
-  }) {
+  Widget _buildSettingsGroup(ColorScheme colorScheme, {required String title, required List<Widget> items}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 12, bottom: 8),
           child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.primary,
-            ),
+              title.toUpperCase(),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: colorScheme.outline, letterSpacing: 1.1)
           ),
         ),
         Container(
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: colorScheme.outline.withAlpha(153)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
           ),
-          child: Column(children: children),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              int idx = entry.key;
+              Widget widget = entry.value;
+              return Column(
+                children: [
+                  widget,
+                  if (idx != items.length - 1)
+                    Divider(height: 1, indent: 60, endIndent: 20, color: colorScheme.outlineVariant.withOpacity(0.5)),
+                ],
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildManageCategoriesTile(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildListTile(BuildContext context, {required IconData icon, required String title, Widget? trailing, VoidCallback? onTap}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
-      leading: Icon(Icons.category, color: colorScheme.secondary),
-      title: const Text('Manage Categories'),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const ManageCategoriesScreen(),
-          ),
-        );
-      },
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: colorScheme.primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: colorScheme.primary, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: colorScheme.outline, size: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
     );
   }
 
-  Widget _buildCurrencyTile(
-    BuildContext context,
-    ColorScheme colorScheme,
-    SettingsProvider settingsProvider,
-    List<CurrencyModel> availableCurrencies,
-  ) {
-    return ListTile(
-      leading: Icon(Icons.currency_exchange, color: colorScheme.secondary),
-      title: const Text('Currency'),
+  Widget _buildCurrencyTile(BuildContext context, ColorScheme colorScheme, SettingsProvider settingsProvider) {
+    return _buildListTile(
+      context,
+      icon: Icons.payments_outlined,
+      title: 'Currency',
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          borderRadius: BorderRadius.circular(15),
           value: settingsProvider.selectedCurrency,
-          items: availableCurrencies.map((CurrencyModel currency) {
-            return DropdownMenuItem<String>(
-              value: currency.symbol,
-              child: Text(
-                '${currency.code} (${currency.symbol})',
-                style: TextStyle(color: colorScheme.onSurface),
-              ),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              settingsProvider.setCurrency(newValue);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Currency set to $newValue')),
-              );
-            }
-          },
+          icon: Icon(Icons.arrow_drop_down, color: colorScheme.primary),
+          onChanged: (val) => val != null ? settingsProvider.setCurrency(val) : null,
+          items: defaultCurrencies.map((c) => DropdownMenuItem(
+              value: c.symbol,
+              child: Text(c.code, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
+          )).toList(),
         ),
       ),
-      onTap: null,
     );
   }
 
-  Widget _buildDarkModeTile(
-    BuildContext context,
-    ColorScheme colorScheme,
-    ThemeProvider themeProvider,
-  ) {
-    return ListTile(
-      leading: Icon(Icons.dark_mode, color: colorScheme.secondary),
-      title: const Text('Dark Mode'),
-      trailing: Switch(
+  Widget _buildDarkModeTile(BuildContext context, ColorScheme colorScheme, ThemeProvider themeProvider) {
+    return _buildListTile(
+      context,
+      icon: Icons.dark_mode_outlined,
+      title: 'Dark Theme',
+      trailing: Switch.adaptive(
         value: themeProvider.isDarkMode,
-        activeThumbColor: colorScheme.primary,
-        onChanged: (newValue) {
-          themeProvider.toggleTheme(newValue);
-        },
+        activeTrackColor: colorScheme.primary,
+        onChanged: (val) => themeProvider.toggleTheme(val),
       ),
     );
   }
 
-  Widget _buildAppVersionTile(BuildContext context, ColorScheme colorScheme) {
-    return ListTile(
-      leading: Icon(Icons.info_outline, color: colorScheme.secondary),
-      title: const Text('App Version'),
-      trailing: const Text('1.0.0', style: TextStyle(fontSize: 14)),
-    );
-  }
-
-  Widget _buildAboutUsTile(BuildContext context, ColorScheme colorScheme) {
-    return ListTile(
-      leading: Icon(Icons.people, color: colorScheme.secondary),
-      title: const Text('About Us'),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-        showCustomAboutDialog(context);
-      },
-    );
-  }
-
-  Widget _buildLogoutButton(
-    BuildContext context,
-    ColorScheme colorScheme,
-    AuthService authService,
-  ) {
+  Widget _buildLogoutButton(BuildContext context, ColorScheme colorScheme, AuthService authService) {
     return OutlinedButton.icon(
-      onPressed: () async {
-        await authService.signOut();
-      },
-      icon: Icon(Icons.logout, color: colorScheme.error),
-      label: Text(
-        'Logout',
-        style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
-      ),
+      onPressed: () => authService.signOut(),
+      icon: Icon(Icons.logout_rounded, size: 18, color: colorScheme.error),
+      label: Text('Logout Account', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w600)),
       style: OutlinedButton.styleFrom(
-        backgroundColor: colorScheme.error.withAlpha(20),
-        minimumSize: const Size(double.infinity, 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        side: BorderSide(color: colorScheme.error, width: 1.0),
+        minimumSize: const Size(double.infinity, 56),
+        side: BorderSide(color: colorScheme.error.withOpacity(0.2)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

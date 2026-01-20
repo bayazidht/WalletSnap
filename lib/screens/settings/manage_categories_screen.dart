@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_snap/models/category_model.dart';
 import 'package:wallet_snap/providers/category_provider.dart';
-
 import '../../data/default_category_icons.dart';
 
 class ManageCategoriesScreen extends StatefulWidget {
@@ -29,46 +28,44 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
   }
 
   Widget _buildIconGrid(
-    ColorScheme colorScheme,
-    String selectedIconName,
-    Function(String) onIconSelected,
-  ) {
-    return SizedBox(
-      height: 200,
+      ColorScheme colorScheme,
+      String selectedIconName,
+      Function(String) onIconSelected,
+      ) {
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 6,
-          childAspectRatio: 1.0,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
+          crossAxisCount: 5,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
         ),
         itemCount: availableIcons.length,
         itemBuilder: (context, index) {
           final iconEntry = availableIcons.entries.elementAt(index);
           final iconName = iconEntry.key;
-          final IconData iconData = iconEntry.value;
           final isSelected = iconName == selectedIconName;
 
-          return GestureDetector(
-            onTap: () {
-              onIconSelected(iconName);
-            },
-            child: Container(
+          return InkWell(
+            onTap: () => onIconSelected(iconName),
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? colorScheme.primary.withAlpha(30)
-                    : colorScheme.surfaceContainerHigh,
-                shape: BoxShape.circle,
-                border: isSelected
-                    ? Border.all(color: colorScheme.primary, width: 3)
-                    : null,
+                color: isSelected ? colorScheme.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+                ),
               ),
               child: Icon(
-                iconData,
-                color: isSelected
-                    ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-                size: 30,
+                iconEntry.value,
+                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
               ),
             ),
           );
@@ -80,111 +77,55 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
   void _showAddCategoryBottomSheet(CategoryType type) {
     final provider = Provider.of<CategoryProvider>(context, listen: false);
     final TextEditingController nameController = TextEditingController();
-    final String typeName = type == CategoryType.income ? 'Income' : 'Expense';
     final colorScheme = Theme.of(context).colorScheme;
-    final actionColor = type == CategoryType.income
-        ? colorScheme.primary
-        : colorScheme.error;
-
     String tempSelectedIconName = availableIcons.keys.first;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateSheet) {
-            String currentSelectedIconName = tempSelectedIconName;
-
-            return Padding(
-              padding: EdgeInsets.fromViewPadding(
-                View.of(context).viewInsets,
-                View.of(context).devicePixelRatio,
-              ).copyWith(top: 20, bottom: 20, left: 20, right: 20),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Add $typeName Category',
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        hintText: 'Category Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: actionColor, width: 2),
-                        ),
-                      ),
-                      autofocus: true,
-                    ),
-                    const SizedBox(height: 15),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Select Icon:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: colorScheme.onSurface,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildIconGrid(colorScheme, currentSelectedIconName, (
-                      String newIconName,
-                    ) {
-                      setStateSheet(() {
-                        tempSelectedIconName = newIconName;
-                      });
-                    }),
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: actionColor,
-                        foregroundColor: colorScheme.onError,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                      ),
-                      onPressed: () {
-                        if (nameController.text.trim().isNotEmpty) {
-                          provider.addCategory(
-                            nameController.text.trim(),
-                            type,
-                            tempSelectedIconName,
-                          );
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      child: const Text(
-                        'Add Category',
-                        style: TextStyle(
-                          fontSize: 18
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20)
-                  ],
+      backgroundColor: colorScheme.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateSheet) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            left: 24, right: 24, top: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Text('Add ${type.name.toUpperCase()} Category', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Category Name',
+                  prefixIcon: const Icon(Icons.edit_note_rounded),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
+                autofocus: true,
               ),
-            );
-          },
-        );
-      },
+              const SizedBox(height: 20),
+              const Align(alignment: Alignment.centerLeft, child: Text('Select Icon', style: TextStyle(fontWeight: FontWeight.bold))),
+              const SizedBox(height: 12),
+              _buildIconGrid(colorScheme, tempSelectedIconName, (newIcon) => setStateSheet(() => tempSelectedIconName = newIcon)),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () {
+                  if (nameController.text.trim().isNotEmpty) {
+                    provider.addCategory(nameController.text.trim(), type, tempSelectedIconName);
+                    Navigator.pop(context);
+                  }
+                },
+                style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                child: const Text('Save Category'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -194,193 +135,88 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Manage Categories'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        elevation: 1,
+        title: const Text('Manage Categories', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         bottom: TabBar(
           controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorWeight: 4,
-          indicatorColor: colorScheme.onPrimary,
-          labelColor: colorScheme.onPrimary,
-          unselectedLabelColor: colorScheme.onPrimary.withAlpha(178),
-          tabs: const [
-            Tab(text: 'Expense'),
-            Tab(text: 'Income'),
-          ],
+          indicatorColor: colorScheme.primary,
+          indicatorWeight: 3,
+          labelColor: colorScheme.primary,
+          unselectedLabelColor: colorScheme.outline,
+          tabs: const [Tab(text: 'Expense'), Tab(text: 'Income')],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildCategoryList(
-            provider.expenseCategories,
-            CategoryType.expense,
-            provider,
-            colorScheme,
-          ),
-          _buildCategoryList(
-            provider.incomeCategories,
-            CategoryType.income,
-            provider,
-            colorScheme,
-          ),
+          _buildCategoryList(provider.expenseCategories, CategoryType.expense, provider, colorScheme),
+          _buildCategoryList(provider.incomeCategories, CategoryType.income, provider, colorScheme),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'addCategoryBtn',
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        shape: const CircleBorder(),
-        onPressed: () {
-          final CategoryType selectedType = _tabController.index == 0
-              ? CategoryType.expense
-              : CategoryType.income;
-
-          _showAddCategoryBottomSheet(selectedType);
-        },
-        child: const Icon(Icons.add_rounded, size: 30),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddCategoryBottomSheet(_tabController.index == 0 ? CategoryType.expense : CategoryType.income),
+        label: const Text('Add Category'),
+        icon: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildCategoryList(
-    List<CategoryModel> categories,
-    CategoryType type,
-    CategoryProvider provider,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildCategoryList(List<CategoryModel> categories, CategoryType type, CategoryProvider provider, ColorScheme colorScheme) {
     if (categories.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                type == CategoryType.income
-                    ? Icons.payments_outlined
-                    : Icons.shopping_bag_outlined,
-                size: 60,
-                color: colorScheme.outlineVariant,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'No ${type == CategoryType.income ? 'income' : 'expense'} categories found.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                'Tap the (+) button below to create a new one.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: colorScheme.outline),
-              ),
-            ],
-          ),
-        ),
-      );
+      return Center(child: Text('No categories found.', style: TextStyle(color: colorScheme.outline)));
     }
 
-    final iconColor = type == CategoryType.income
-        ? colorScheme.primary
-        : colorScheme.error;
-    final backgroundColor = colorScheme.surfaceContainerLow;
-
     return ListView.builder(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(16),
       itemCount: categories.length,
       itemBuilder: (context, index) {
         final category = categories[index];
-        final IconData? categoryIconData = availableIcons[category.iconName];
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 5.0),
-          child: Card(
-            elevation: 0,
-            color: backgroundColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-              side: BorderSide(
-                color: colorScheme.outline.withAlpha(60),
-                width: 1.0,
-              ),
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+          ),
+          child: ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+              child: Icon(availableIcons[category.iconName], color: colorScheme.primary, size: 22),
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 4.0,
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: iconColor.withAlpha(30),
-                ),
-                child: Icon(categoryIconData, color: iconColor, size: 25),
-              ),
-              title: Text(
-                category.name,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              trailing: IconButton(
-                icon: Icon(
-                  Icons.delete_outline_rounded,
-                  color: colorScheme.error,
-                ),
-                onPressed: () async {
-                  final bool? confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      title: const Text('Confirm Deletion'),
-                      content: Text(
-                        'Are you sure you want to delete the category "${category.name}"? This action cannot be undone.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colorScheme.error,
-                          ),
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(color: colorScheme.onError),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  if (confirm == true) {
-                    await provider.deleteCategory(category.id);
-                  }
-                },
-              ),
+            title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            trailing: IconButton(
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+              onPressed: () => _confirmDeletion(context, category, provider, colorScheme),
             ),
           ),
         );
       },
+    );
+  }
+
+  void _confirmDeletion(BuildContext context, CategoryModel category, CategoryProvider provider, ColorScheme colorScheme) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Delete Category?'),
+        content: Text('Are you sure you want to delete "${category.name}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: TextStyle(color: colorScheme.outline))),
+          FilledButton(
+            onPressed: () {
+              provider.deleteCategory(category.id);
+              Navigator.pop(ctx);
+            },
+            style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }
