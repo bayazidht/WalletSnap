@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "725573487414",
+    "project_id": "wallet-snap",
+    "storage_bucket": "wallet-snap.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725573487414:android:e19bfaa015016dbcf50197",
+        "android_client_info": {
+          "package_name": "com.coderspark.wallet_snap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "725573487414-13u51g1ffiku6ceu22ng99brf4vusv6g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.coderspark.wallet_snap",
+            "certificate_hash": "5db32ae5de3fb47b63370c28217a3adaf64691d0"
+          }
+        },
+        {
+          "client_id": "725573487414-kqjr69rpepbfh38knrb2te32lepp5f7g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvPmjmK8y8uFcV2Cwi2YBl78KboDrqtik"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "725573487414-kqjr69rpepbfh38knrb2te32lepp5f7g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "725573487414-kldbdheed0ovdbpt1ikhpvl0rgsk5qq6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.coderspark.walletSnap"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
