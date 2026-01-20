@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wallet_snap/data/default_currencies.dart';
-import 'package:wallet_snap/services/auth_service.dart';
+import 'package:wallet_snap/screens/settings/profile_screen.dart';
 import 'package:wallet_snap/screens/settings/manage_categories_screen.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../widgets/about_us_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -16,7 +15,6 @@ class SettingsScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
-    final authService = Provider.of<AuthService>(context, listen: false);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -62,63 +60,96 @@ class SettingsScreen extends StatelessWidget {
             items: [
               _buildListTile(
                 context,
+                icon: Icons.favorite_border_rounded,
+                title: 'About Us',
+                onTap: () => {},
+              ),
+              _buildListTile(
+                context,
                 icon: Icons.info_outline_rounded,
                 title: 'App Version',
                 trailing: Text('1.0.0', style: TextStyle(color: colorScheme.outline, fontWeight: FontWeight.w500)),
               ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          _buildSettingsGroup(
+            colorScheme,
+            title: 'Support',
+            items: [
               _buildListTile(
                 context,
-                icon: Icons.favorite_border_rounded,
-                title: 'About Us',
-                onTap: () => showCustomAboutDialog(context),
+                icon: Icons.email_outlined,
+                title: 'Contact Us',
+                onTap: () => {},
+              ),
+              _buildListTile(
+                context,
+                icon: Icons.verified_user_outlined,
+                title: 'Privacy Policy',
+                onTap: () => {},
               ),
             ],
           ),
-          const SizedBox(height: 40),
-
-          _buildLogoutButton(context, colorScheme, authService),
-          const SizedBox(height: 50),
+          const SizedBox(height: 50)
         ],
       ),
     );
   }
 
   Widget _buildProfileSection(BuildContext context, User? user, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 32,
-            backgroundColor: colorScheme.primary,
-            backgroundImage: user?.photoURL != null
-                ? NetworkImage(user!.photoURL!)
-                : const AssetImage('assets/images/default_user.png') as ImageProvider,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.displayName ?? 'WalletSnap User',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  user?.email ?? 'No email available',
-                  style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
-                ),
-              ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: colorScheme.primary,
+              backgroundImage: user?.photoURL != null
+                  ? NetworkImage(user!.photoURL!)
+                  : const AssetImage('assets/images/default_user.png') as ImageProvider,
             ),
-          ),
-          const SizedBox(width: 16),
-          Icon(Icons.chevron_right_rounded, color: colorScheme.outline, size: 24),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user?.displayName ?? 'WalletSnap User',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    user?.email ?? 'No email available',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Icon(Icons.chevron_right_rounded, color: colorScheme.outline, size: 24),
+          ],
+        ),
       ),
     );
   }
@@ -138,7 +169,7 @@ class SettingsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
           ),
           child: Column(
             children: items.asMap().entries.map((entry) {
@@ -204,19 +235,6 @@ class SettingsScreen extends StatelessWidget {
         value: themeProvider.isDarkMode,
         activeTrackColor: colorScheme.primary,
         onChanged: (val) => themeProvider.toggleTheme(val),
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton(BuildContext context, ColorScheme colorScheme, AuthService authService) {
-    return OutlinedButton.icon(
-      onPressed: () => authService.signOut(),
-      icon: Icon(Icons.logout_rounded, size: 18, color: colorScheme.error),
-      label: Text('Logout Account', style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.w600)),
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 56),
-        side: BorderSide(color: colorScheme.error.withOpacity(0.2)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

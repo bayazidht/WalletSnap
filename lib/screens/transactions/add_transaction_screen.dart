@@ -24,11 +24,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   CategoryType _type = CategoryType.expense;
   double _amount = 0.0;
+  String _title = '';
   String? _selectedCategoryId;
   DateTime _date = DateTime.now();
   String _notes = '';
 
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   @override
@@ -38,6 +40,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final tx = widget.transactionToEdit!;
       _type = tx.type == TransactionType.income ? CategoryType.income : CategoryType.expense;
       _amount = tx.amount;
+      _title = tx.title;
       _selectedCategoryId = tx.categoryId;
       _date = tx.date;
       _notes = tx.notes;
@@ -49,6 +52,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   void dispose() {
     _amountController.dispose();
+    _titleController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -95,6 +99,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
       final transactionToSave = TransactionModel(
         id: transactionId,
+        title: _title,
         amount: _amount,
         type: _type == CategoryType.income ? TransactionType.income : TransactionType.expense,
         categoryId: selectedCategoryModel.id,
@@ -139,9 +144,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Record' : 'New Transaction',
+        title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction',
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
@@ -217,6 +221,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
               _buildInputCard(
                 colorScheme,
+                label: "Title",
+                child: TextFormField(
+                  controller: _titleController,
+                  maxLines: 1,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter a title',
+                    border: InputBorder.none,
+                  ),
+                  onSaved: (val) => _title = val ?? '',
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              _buildInputCard(
+                colorScheme,
                 label: "Category",
                 child: DropdownButtonFormField<String>(
                   initialValue: _selectedCategoryId,
@@ -282,7 +301,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         child: FilledButton(
           onPressed: _submitForm,
           style: FilledButton.styleFrom(
-            minimumSize: const Size(double.infinity, 60),
+            minimumSize: const Size(double.infinity, 50),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             elevation: 2,
           ),
@@ -300,9 +319,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.4)),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
         ],
       ),
       child: Column(

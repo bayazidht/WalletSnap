@@ -35,8 +35,29 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     super.dispose();
   }
 
-  List<TransactionModel> _getFilteredTransactions(
-      List<TransactionModel> allTransactions, int tabIndex) {
+  Map<String, List<TransactionModel>> _groupTransactions(List<TransactionModel> transactions) {
+    Map<String, List<TransactionModel>> grouped = {};
+    for (var tx in transactions) {
+      String dateKey = DateFormat('yyyy-MM-dd').format(tx.date);
+      if (grouped[dateKey] == null) grouped[dateKey] = [];
+      grouped[dateKey]!.add(tx);
+    }
+    return grouped;
+  }
+
+  String _formatHeaderDate(String dateStr) {
+    final date = DateTime.parse(dateStr);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final txDate = DateTime(date.year, date.month, date.day);
+
+    if (txDate == today) return "Today";
+    if (txDate == yesterday) return "Yesterday";
+    return DateFormat('dd MMMM yyyy').format(date);
+  }
+
+  List<TransactionModel> _getFilteredTransactions(List<TransactionModel> allTransactions, int tabIndex) {
     Iterable<TransactionModel> filtered = allTransactions;
 
     if (tabIndex == 1) filtered = filtered.where((tx) => tx.type == TransactionType.income);
@@ -54,9 +75,105 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     return filtered.toList()..sort((a, b) => b.date.compareTo(a.date));
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final transactionProvider = Provider.of<TransactionProvider>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Transactions', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            onPressed: () => _showFilterBottomSheet(colorScheme),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: colorScheme.primaryContainer.withValues(alpha: 0.4), shape: BoxShape.circle),
+              child: Icon(Icons.tune_rounded, size: 20, color: colorScheme.primary),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: colorScheme.primary,
+          labelColor: colorScheme.primary,
+          unselectedLabelColor: Colors.grey,
+          indicatorSize: TabBarIndicatorSize.label,
+          tabs: const [Tab(text: 'All'), Tab(text: 'Income'), Tab(text: 'Expense')],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: List.generate(3, (i) => _buildTransactionList(transactionProvider.filteredTransactions, i, colorScheme)),
+      ),
+    );
+  }
+
+  Widget _buildTransactionList(List<TransactionModel> all, int index, ColorScheme colorScheme) {
+    final filtered = _getFilteredTransactions(all, index);
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt_long_rounded, size: 80, color: colorScheme.outlineVariant),
+            const SizedBox(height: 16),
+            Text('No transactions found', style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      );
+    }
+
+    final groupedData = _groupTransactions(filtered);
+    final sortedDates = groupedData.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedDates.length,
+      itemBuilder: (context, dateIndex) {
+        String dateKey = sortedDates[dateIndex];
+        List<TransactionModel> txList = groupedData[dateKey]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 8, top: 16, bottom: 8),
+              child: Text(
+                _formatHeaderDate(dateKey),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.outline,
+                ),
+              ),
+            ),
+            ...txList.map((tx) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
+              child: TransactionItem(tx: tx),
+            )),
+          ],
+        );
+      },
+    );
+  }
+
   void _showFilterBottomSheet(ColorScheme colorScheme) {
     final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -68,16 +185,9 @@ class _TransactionsScreenState extends State<TransactionsScreen>
               : _selectedType == TransactionType.expense
               ? categoryProvider.expenseCategories
               : [];
-
           return Container(
-            padding: EdgeInsets.only(
-              top: 20, left: 24, right: 24,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 30,
-            ),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
+            padding: EdgeInsets.only(top: 20, left: 24, right: 24, bottom: MediaQuery.of(context).viewInsets.bottom + 30),
+            decoration: BoxDecoration(color: colorScheme.surface, borderRadius: const BorderRadius.vertical(top: Radius.circular(32))),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,18 +197,14 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Filter', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                    Text('Filter', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                     TextButton(
-                      onPressed: () {
-                        setState(() { _selectedCategoryId = null; _selectedDate = null; _selectedType = null; });
-                        Navigator.pop(context);
-                      },
+                      onPressed: () { setState(() { _selectedCategoryId = null; _selectedDate = null; _selectedType = null; }); Navigator.pop(context); },
                       child: Text('Clear All', style: TextStyle(color: colorScheme.error)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-
                 _buildFilterLabel('Transaction Type'),
                 const SizedBox(height: 10),
                 _buildDropdown<TransactionType?>(
@@ -111,7 +217,6 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   ],
                   onChanged: (val) => setStateSheet(() { _selectedType = val; _selectedCategoryId = null; }),
                 ),
-
                 const SizedBox(height: 20),
                 _buildFilterLabel('Category'),
                 const SizedBox(height: 10),
@@ -128,7 +233,6 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   ],
                   onChanged: (val) => setStateSheet(() => _selectedCategoryId = val),
                 ),
-
                 const SizedBox(height: 20),
                 _buildFilterLabel('Date'),
                 const SizedBox(height: 10),
@@ -139,7 +243,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest.withOpacity(0.3), borderRadius: BorderRadius.circular(16)),
+                    decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(16)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -149,7 +253,6 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -173,90 +276,15 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: enabled ? Colors.transparent : Colors.grey.withOpacity(0.1),
+        color: enabled ? Colors.transparent : Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value, isExpanded: true, hint: Text(hint), items: items,
           onChanged: enabled ? (val) => onChanged(val as T) : null,
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final transactionProvider = Provider.of<TransactionProvider>(context);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Transactions', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        actions: [
-          IconButton(
-            onPressed: () => _showFilterBottomSheet(colorScheme),
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: colorScheme.primaryContainer.withOpacity(0.4), shape: BoxShape.circle),
-              child: Icon(Icons.tune_rounded, size: 20, color: colorScheme.primary),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: colorScheme.primary,
-          indicatorWeight: 3,
-          labelColor: colorScheme.primary,
-          unselectedLabelColor: Colors.grey,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          indicatorSize: TabBarIndicatorSize.label,
-          tabs: const [Tab(text: 'All'), Tab(text: 'Income'), Tab(text: 'Expense')],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildTransactionList(transactionProvider.filteredTransactions, 0, colorScheme),
-          _buildTransactionList(transactionProvider.filteredTransactions, 1, colorScheme),
-          _buildTransactionList(transactionProvider.filteredTransactions, 2, colorScheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionList(List<TransactionModel> all, int index, ColorScheme colorScheme) {
-    final filtered = _getFilteredTransactions(all, index);
-
-    if (filtered.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long_rounded, size: 80, color: colorScheme.outlineVariant),
-            const SizedBox(height: 16),
-            Text('No transactions found', style: TextStyle(fontSize: 18, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
-          ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: filtered.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
-        ),
-        child: TransactionItem(tx: filtered[index]),
       ),
     );
   }

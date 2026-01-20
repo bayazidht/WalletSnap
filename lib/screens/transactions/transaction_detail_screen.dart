@@ -55,7 +55,6 @@ class TransactionDetailScreen extends StatelessWidget {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
@@ -70,7 +69,7 @@ class TransactionDetailScreen extends StatelessWidget {
                     height: 80,
                     width: 80,
                     decoration: BoxDecoration(
-                      color: amountColor.withOpacity(0.1),
+                      color: amountColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -106,9 +105,9 @@ class TransactionDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                  border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10))
                   ],
                 ),
                 child: Column(
@@ -142,9 +141,8 @@ class TransactionDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 40),
-            // অ্যাকশন বাটন
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -186,7 +184,7 @@ class TransactionDetailScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, size: 20, color: iconColor),
         ),
         const SizedBox(width: 16),
@@ -220,7 +218,7 @@ class TransactionDetailScreen extends StatelessWidget {
         label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
-          side: BorderSide(color: color.withOpacity(0.5)),
+          side: BorderSide(color: color.withValues(alpha: 0.5)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       )

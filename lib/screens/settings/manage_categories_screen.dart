@@ -138,8 +138,6 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Manage Categories', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: colorScheme.primary,
@@ -179,12 +177,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
           decoration: BoxDecoration(
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
           ),
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(availableIcons[category.iconName], color: colorScheme.primary, size: 22),
             ),
             title: Text(category.name, style: const TextStyle(fontWeight: FontWeight.w600)),

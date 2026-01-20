@@ -35,7 +35,7 @@ class SignInScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withOpacity(0.8),
+                      colorScheme.primary.withValues(alpha: 0.8),
                     ],
                   ),
                   borderRadius: const BorderRadius.only(
@@ -51,7 +51,7 @@ class SignInScreen extends StatelessWidget {
                       child: Icon(
                         Icons.auto_awesome_rounded,
                         size: 250,
-                        color: Colors.white.withOpacity(0.08),
+                        color: Colors.white.withValues(alpha: 0.08),
                       ),
                     ),
                     Padding(
@@ -63,10 +63,10 @@ class SignInScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(28),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                               ),
                             ),
                             child: const Icon(
@@ -88,7 +88,7 @@ class SignInScreen extends StatelessWidget {
                           Text(
                             'Smart Finance with AI Insights.',
                             style: textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w300,
                             ),
                           ),
@@ -115,7 +115,7 @@ class SignInScreen extends StatelessWidget {
                       'Scan receipts, track expenses, and let our AI optimize your budget automatically.',
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                         height: 1.6,
                       ),
                     ),
@@ -157,11 +157,11 @@ class SignInScreen extends StatelessWidget {
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: colorScheme.outlineVariant.withOpacity(0.5),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),

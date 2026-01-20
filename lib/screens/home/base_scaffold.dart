@@ -46,7 +46,7 @@ class BaseScaffoldState extends State<BaseScaffold> {
           backgroundColor: colorScheme.primary,
           elevation: 4,
           shape: CircleBorder(),
-          child: const Icon(Icons.add_rounded, size: 35, color: Colors.white),
+          child: Icon(Icons.add_rounded, size: 30, color: colorScheme.onPrimary),
         ),
       ),
 

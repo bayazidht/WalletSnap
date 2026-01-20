@@ -22,8 +22,8 @@ class TransactionItem extends StatelessWidget {
     final IconData? categoryIconData = availableIcons[categoryModel.iconName];
     final bool isIncome = tx.type == TransactionType.income;
 
-    final color = isIncome ? Colors.green : Colors.red;
-    final bgColor = color.withOpacity(0.12);
+    final color = isIncome ? Colors.green : colorScheme.error;
+    final bgColor = color.withValues(alpha: 0.1);
 
     return InkWell(
       onTap: () {
@@ -31,8 +31,9 @@ class TransactionItem extends StatelessWidget {
           MaterialPageRoute(builder: (context) => TransactionDetailScreen(transaction: tx)),
         );
       },
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
@@ -42,32 +43,58 @@ class TransactionItem extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(categoryIconData, color: color, size: 26),
+              child: Icon(categoryIconData ?? Icons.category_rounded, color: color, size: 24),
             ),
             const SizedBox(width: 16),
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    categoryModel.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    tx.title.isNotEmpty ? tx.title : categoryModel.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    DateFormat('MMM dd, yyyy').format(tx.date),
-                    style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+                    tx.title.isNotEmpty
+                        ? categoryModel.name
+                        : "at ${DateFormat('hh:mm a').format(tx.date)}",
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
             ),
-            Text(
-              '${isIncome ? '+' : '-'}$currency${tx.amount.toStringAsFixed(0)}',
-              style: TextStyle(
-                color: color,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}$currency${tx.amount.toStringAsFixed(tx.amount % 1 == 0 ? 0 : 2)}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (tx.title.isNotEmpty)
+                  Text(
+                    DateFormat('hh:mm a').format(tx.date),
+                    style: TextStyle(
+                      color: colorScheme.outline,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

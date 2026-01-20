@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../providers/settings_provider.dart';
 import '../../widgets/summary_card.dart';
+import '../settings/profile_screen.dart';
 import 'base_scaffold.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -19,11 +20,16 @@ class HomeScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final sortedList = List<TransactionModel>.from(provider.filteredTransactions);
+    final sortedList = List<TransactionModel>.from(
+      provider.filteredTransactions,
+    );
     sortedList.sort((a, b) => b.date.compareTo(a.date));
     final recentTransactions = sortedList.take(4).toList();
 
-    Map<String, double> getFilteredSummary(List<TransactionModel> transactions, {bool today = false}) {
+    Map<String, double> getFilteredSummary(
+      List<TransactionModel> transactions, {
+      bool today = false,
+    }) {
       double income = 0.0;
       double expense = 0.0;
       final now = DateTime.now();
@@ -31,11 +37,14 @@ class HomeScreen extends StatelessWidget {
       for (var tx in transactions) {
         bool shouldInclude = false;
         if (today) {
-          if (tx.date.year == now.year && tx.date.month == now.month && tx.date.day == now.day) {
+          if (tx.date.year == now.year &&
+              tx.date.month == now.month &&
+              tx.date.day == now.day) {
             shouldInclude = true;
           }
         } else {
-          if (tx.date.year == provider.selectedDate.year && tx.date.month == provider.selectedDate.month) {
+          if (tx.date.year == provider.selectedDate.year &&
+              tx.date.month == provider.selectedDate.month) {
             shouldInclude = true;
           }
         }
@@ -51,8 +60,14 @@ class HomeScreen extends StatelessWidget {
       return {'income': income, 'expense': expense};
     }
 
-    final todaySummary = getFilteredSummary(provider.filteredTransactions, today: true);
-    final monthSummary = getFilteredSummary(provider.filteredTransactions, today: false);
+    final todaySummary = getFilteredSummary(
+      provider.filteredTransactions,
+      today: true,
+    );
+    final monthSummary = getFilteredSummary(
+      provider.filteredTransactions,
+      today: false,
+    );
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -63,10 +78,20 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Good morning,', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w400)),
+              const Text(
+                'Good morning,',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
               Text(
                 user?.displayName?.split(' ')[0] ?? 'WalletSnap',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -76,10 +101,23 @@ class HomeScreen extends StatelessWidget {
           _buildActionIcon(Icons.notifications_none_rounded, hasBadge: true),
           Padding(
             padding: const EdgeInsets.only(right: 20, left: 8),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: colorScheme.primaryContainer,
-              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : const AssetImage('assets/images/default_user.png') as ImageProvider,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfileScreen(),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: colorScheme.primaryContainer,
+                backgroundImage: user?.photoURL != null
+                    ? NetworkImage(user!.photoURL!)
+                    : const AssetImage('assets/images/default_user.png')
+                          as ImageProvider,
+              ),
             ),
           ),
         ],
@@ -114,36 +152,61 @@ class HomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
+                  Text(
+                    'Recent Transactions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () {
-                      final BaseScaffoldState? baseScaffoldState = context.findAncestorStateOfType<BaseScaffoldState>();
+                      final BaseScaffoldState? baseScaffoldState = context
+                          .findAncestorStateOfType<BaseScaffoldState>();
                       baseScaffoldState?.setSelectedIndex(1);
                     },
-                    child: Text('View All', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 14)),
+                    child: Text(
+                      'View All',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
 
             if (provider.filteredTransactions.isEmpty)
-              const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No transactions found.')))
-            else
-              ...recentTransactions.map((tx) => Container(
-                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('No transactions found.'),
                 ),
-                child: TransactionItem(tx: tx),
-              )),
+              )
+            else
+              ...recentTransactions.map(
+                (tx) => Container(
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 6,
+                    horizontal: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TransactionItem(tx: tx),
+                ),
+              ),
             const SizedBox(height: 50),
           ],
         ),
@@ -154,22 +217,36 @@ class HomeScreen extends StatelessWidget {
   Widget _buildActionIcon(IconData icon, {bool hasBadge = false}) {
     return Container(
       margin: const EdgeInsets.only(left: 10),
-      decoration: BoxDecoration(color: Colors.grey.withOpacity(0.05), shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.05),
+        shape: BoxShape.circle,
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           IconButton(onPressed: () {}, icon: Icon(icon, size: 24)),
           if (hasBadge)
             Positioned(
-              right: 12, top: 12,
-              child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF5C6BC0), shape: BoxShape.circle)),
-            )
+              right: 12,
+              top: 12,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF5C6BC0),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildMainBalanceCard(BuildContext context, TransactionProvider provider) {
+  Widget _buildMainBalanceCard(
+    BuildContext context,
+    TransactionProvider provider,
+  ) {
     final currency = Provider.of<SettingsProvider>(context).selectedCurrency;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -179,20 +256,17 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withOpacity(0.8),
-          ],
+          colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(isDark ? 0.1 : 0.3),
+            color: colorScheme.primary.withValues(alpha: isDark ? 0.1 : 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -203,12 +277,15 @@ class HomeScreen extends StatelessWidget {
             children: [
               Text(
                 'Total Balance',
-                style: TextStyle(color: colorScheme.onPrimary.withOpacity(0.7), fontSize: 15),
+                style: TextStyle(
+                  color: colorScheme.onPrimary.withValues(alpha: 0.7),
+                  fontSize: 15,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -216,16 +293,28 @@ class HomeScreen extends StatelessWidget {
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       onPressed: () => provider.changeMonth(-1),
-                      icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                      icon: Icon(
+                        Icons.chevron_left,
+                        color: colorScheme.onPrimary,
+                        size: 20,
+                      ),
                     ),
                     Text(
                       DateFormat('MMM yyyy').format(provider.selectedDate),
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      style: TextStyle(
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       onPressed: () => provider.changeMonth(1),
-                      icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                      icon: Icon(
+                        Icons.chevron_right,
+                        color: colorScheme.onPrimary,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -245,13 +334,17 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: colorScheme.onPrimary.withOpacity(0.15),
+              color: colorScheme.onPrimary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.trending_up, color: Colors.greenAccent, size: 14),
+                const Icon(
+                  Icons.trending_up,
+                  color: Colors.greenAccent,
+                  size: 14,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '+12% vs last month',
@@ -263,7 +356,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -277,13 +370,13 @@ class HomeScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.1 : 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.02),
             blurRadius: 15,
             offset: const Offset(0, 5),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -294,10 +387,14 @@ class HomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.auto_awesome_rounded, color: colorScheme.primary, size: 24),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -324,7 +421,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -340,7 +437,7 @@ class HomeScreen extends StatelessWidget {
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

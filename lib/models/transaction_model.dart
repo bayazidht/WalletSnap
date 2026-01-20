@@ -4,6 +4,7 @@ enum TransactionType { income, expense }
 
 class TransactionModel {
   final String id;
+  final String title;
   final double amount;
   final TransactionType type;
   final String categoryId;
@@ -12,6 +13,7 @@ class TransactionModel {
 
   TransactionModel({
     required this.id,
+    required this.title,
     required this.amount,
     required this.type,
     required this.categoryId,
@@ -23,6 +25,7 @@ class TransactionModel {
     Map data = doc.data() as Map<String, dynamic>;
     return TransactionModel(
       id: doc.id,
+      title: data['title'],
       amount: (data['amount'] as num).toDouble(),
       type: data['type'] == 'income' ? TransactionType.income : TransactionType.expense,
       categoryId: data['categoryId'],
@@ -34,6 +37,7 @@ class TransactionModel {
   Map<String, dynamic> toFirestore() {
     return {
       'amount': amount,
+      'title': title,
       'type': type == TransactionType.income ? 'income' : 'expense',
       'categoryId': categoryId,
       'date': Timestamp.fromDate(date),
