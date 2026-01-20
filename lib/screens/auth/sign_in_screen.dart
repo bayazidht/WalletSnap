@@ -7,9 +7,7 @@ import 'package:wallet_snap/services/auth_service.dart';
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
-  void _launchURL(String url) async {
-
-  }
+  void _launchURL(String url) async {}
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +19,7 @@ class SignInScreen extends StatelessWidget {
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
         backgroundColor: colorScheme.surface,
@@ -29,7 +27,7 @@ class SignInScreen extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Container(
-                height: MediaQuery.of(context).size.height * 0.45,
+                height: MediaQuery.of(context).size.height * 0.48,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -37,22 +35,23 @@ class SignInScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withRed(100),
+                      colorScheme.primary.withOpacity(0.8),
                     ],
                   ),
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(60),
+                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(50),
                   ),
                 ),
                 child: Stack(
                   children: [
                     Positioned(
-                      right: -50,
-                      top: -20,
+                      right: -30,
+                      bottom: -20,
                       child: Icon(
-                        Icons.account_balance_wallet_rounded,
-                        size: 300,
-                        color: Colors.white.withOpacity(0.05),
+                        Icons.auto_awesome_rounded,
+                        size: 250,
+                        color: Colors.white.withOpacity(0.08),
                       ),
                     ),
                     Padding(
@@ -62,12 +61,19 @@ class SignInScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(15),
+                            padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(25),
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(28),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                              ),
                             ),
-                            child: const Icon(Icons.auto_graph_rounded, color: Colors.white, size: 40),
+                            child: const Icon(
+                              Icons.wallet_rounded,
+                              color: Colors.white,
+                              size: 45,
+                            ),
                           ),
                           const SizedBox(height: 30),
                           Text(
@@ -75,13 +81,14 @@ class SignInScreen extends StatelessWidget {
                             style: textTheme.displayMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: -1.5,
+                              letterSpacing: -1.0,
                             ),
                           ),
+                          const SizedBox(height: 8),
                           Text(
-                            'Smart Finance, Simple Life.',
+                            'Smart Finance with AI Insights.',
                             style: textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withOpacity(0.9),
                               fontWeight: FontWeight.w300,
                             ),
                           ),
@@ -93,9 +100,8 @@ class SignInScreen extends StatelessWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(35, 40, 35, 20),
+                padding: const EdgeInsets.fromLTRB(30, 50, 30, 30),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Text(
                       'Welcome Back',
@@ -104,20 +110,25 @@ class SignInScreen extends StatelessWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text(
-                      'Manage your expenses with AI-driven insights. Sign in to continue.',
+                      'Scan receipts, track expenses, and let our AI optimize your budget automatically.',
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.5,
+                        color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                        height: 1.6,
                       ),
                     ),
                     const SizedBox(height: 50),
 
-                    _buildGoogleButton(context, authService, colorScheme, textTheme),
+                    _buildGoogleButton(
+                      context,
+                      authService,
+                      colorScheme,
+                      textTheme,
+                    ),
 
-                    const SizedBox(height: 60),
+                    const SizedBox(height: 80),
 
                     _buildTermsText(colorScheme, textTheme),
                   ],
@@ -130,41 +141,43 @@ class SignInScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGoogleButton(BuildContext context, AuthService authService, ColorScheme colorScheme, TextTheme textTheme) {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+  Widget _buildGoogleButton(
+    BuildContext context,
+    AuthService authService,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    return InkWell(
+      onTap: () async => await authService.signInWithGoogle(),
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        width: double.infinity,
+        height: 64,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withOpacity(0.5),
           ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: () async => await authService.signInWithGoogle(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          elevation: 0,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: Image.asset('assets/images/google_logo.png', height: 20),
-            ),
+            Image.asset('assets/images/google_logo.png', height: 24),
             const SizedBox(width: 15),
             Text(
               'Continue with Google',
               style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onPrimary,
+                color: colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
+                fontSize: 17,
               ),
             ),
           ],
@@ -177,19 +190,29 @@ class SignInScreen extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: textTheme.bodySmall?.copyWith(color: colorScheme.outline, fontSize: 12),
+        style: textTheme.bodySmall?.copyWith(
+          color: colorScheme.outline,
+          fontSize: 13,
+          height: 1.5,
+        ),
         children: [
-          const TextSpan(text: 'By continuing, you agree to our '),
+          const TextSpan(text: 'By signing in, you agree to our\n'),
           TextSpan(
-            text: 'Terms',
-            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-            recognizer: TapGestureRecognizer()..onTap = () => _launchURL('https://...'),
+            text: 'Terms of Service',
+            style: TextStyle(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+            recognizer: TapGestureRecognizer()..onTap = () => _launchURL(''),
           ),
-          const TextSpan(text: ' & '),
+          const TextSpan(text: ' and '),
           TextSpan(
             text: 'Privacy Policy',
-            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-            recognizer: TapGestureRecognizer()..onTap = () => _launchURL('https://...'),
+            style: TextStyle(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+            recognizer: TapGestureRecognizer()..onTap = () => _launchURL(''),
           ),
         ],
       ),

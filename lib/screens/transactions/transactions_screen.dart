@@ -222,9 +222,9 @@ class _TransactionsScreenState extends State<TransactionsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildTransactionList(transactionProvider.transactions, 0, colorScheme),
-          _buildTransactionList(transactionProvider.transactions, 1, colorScheme),
-          _buildTransactionList(transactionProvider.transactions, 2, colorScheme),
+          _buildTransactionList(transactionProvider.filteredTransactions, 0, colorScheme),
+          _buildTransactionList(transactionProvider.filteredTransactions, 1, colorScheme),
+          _buildTransactionList(transactionProvider.filteredTransactions, 2, colorScheme),
         ],
       ),
     );

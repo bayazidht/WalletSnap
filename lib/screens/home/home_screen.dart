@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
@@ -18,9 +19,9 @@ class HomeScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final allTransactions = List<TransactionModel>.from(provider.transactions);
-    allTransactions.sort((a, b) => b.date.compareTo(a.date));
-    final recentTransactions = allTransactions.take(4).toList();
+    final sortedList = List<TransactionModel>.from(provider.filteredTransactions);
+    sortedList.sort((a, b) => b.date.compareTo(a.date));
+    final recentTransactions = sortedList.take(4).toList();
 
     Map<String, double> getFilteredSummary(List<TransactionModel> transactions, {bool today = false}) {
       double income = 0.0;
@@ -34,7 +35,7 @@ class HomeScreen extends StatelessWidget {
             shouldInclude = true;
           }
         } else {
-          if (tx.date.year == now.year && tx.date.month == now.month) {
+          if (tx.date.year == provider.selectedDate.year && tx.date.month == provider.selectedDate.month) {
             shouldInclude = true;
           }
         }
@@ -50,22 +51,22 @@ class HomeScreen extends StatelessWidget {
       return {'income': income, 'expense': expense};
     }
 
-    final todaySummary = getFilteredSummary(provider.transactions, today: true);
-    final monthSummary = getFilteredSummary(provider.transactions, today: false);
+    final todaySummary = getFilteredSummary(provider.filteredTransactions, today: true);
+    final monthSummary = getFilteredSummary(provider.filteredTransactions, today: false);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Padding(
-          padding: const EdgeInsets.only(left: 5),
+          padding: const EdgeInsets.only(left: 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Good morning,', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w400)),
               Text(
                 user?.displayName?.split(' ')[0] ?? 'WalletSnap',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -89,7 +90,8 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 10),
-            _buildMainBalanceCard(context, provider.totalBalance),
+
+            _buildMainBalanceCard(context, provider),
 
             const SizedBox(height: 20),
             _buildAIInsightCard(context, colorScheme),
@@ -124,7 +126,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            if (provider.transactions.isEmpty)
+            if (provider.filteredTransactions.isEmpty)
               const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('No transactions found.')))
             else
               ...recentTransactions.map((tx) => Container(
@@ -167,7 +169,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMainBalanceCard(BuildContext context, double balance) {
+  Widget _buildMainBalanceCard(BuildContext context, TransactionProvider provider) {
     final currency = Provider.of<SettingsProvider>(context).selectedCurrency;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -196,13 +198,43 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Total Balance',
-            style: TextStyle(color: colorScheme.onPrimary.withOpacity(0.7), fontSize: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Total Balance',
+                style: TextStyle(color: colorScheme.onPrimary.withOpacity(0.7), fontSize: 15),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => provider.changeMonth(-1),
+                      icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                    ),
+                    Text(
+                      DateFormat('MMM yyyy').format(provider.selectedDate),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => provider.changeMonth(1),
+                      icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            '$currency ${balance.toStringAsFixed(2)}',
+            '$currency ${provider.totalBalance.toStringAsFixed(2)}',
             style: TextStyle(
               color: colorScheme.onPrimary,
               fontSize: 34,
@@ -241,7 +273,7 @@ class HomeScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
       decoration: BoxDecoration(
         color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
@@ -299,6 +331,7 @@ class HomeScreen extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
+              iconAlignment: IconAlignment.end,
               onPressed: () {},
               label: const Text('View Details'),
               icon: const Icon(Icons.chevron_right, size: 18),

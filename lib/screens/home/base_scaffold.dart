@@ -45,7 +45,7 @@ class BaseScaffoldState extends State<BaseScaffold> {
           ),
           backgroundColor: colorScheme.primary,
           elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)), // চারকোনা কিন্তু রাউন্ডেড
+          shape: CircleBorder(),
           child: const Icon(Icons.add_rounded, size: 35, color: Colors.white),
         ),
       ),
@@ -59,13 +59,13 @@ class BaseScaffoldState extends State<BaseScaffold> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildNavItem(context, Icons.home_rounded, 'Home', 0),
-            _buildNavItem(context, Icons.format_list_bulleted_rounded, 'Transactions', 1),
+            _buildNavItem(context, Icons.home_filled, 'Home', 0),
+            _buildNavItem(context, Icons.receipt_long, 'Transactions', 1),
 
             const SizedBox(width: 48),
 
-            _buildNavItem(context, Icons.bar_chart_rounded, 'Graphs', 2),
-            _buildNavItem(context, Icons.settings_rounded, 'Settings', 3),
+            _buildNavItem(context, Icons.bar_chart, 'Graphs', 2),
+            _buildNavItem(context, Icons.settings, 'Settings', 3),
           ],
         ),
       ),

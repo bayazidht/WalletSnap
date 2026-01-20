@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wallet_snap/data/default_currencies.dart';
@@ -117,6 +116,8 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(width: 16),
+          Icon(Icons.chevron_right_rounded, color: colorScheme.outline, size: 24),
         ],
       ),
     );

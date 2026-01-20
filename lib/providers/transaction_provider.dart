@@ -9,13 +9,11 @@ import 'category_provider.dart';
 
 class TransactionProvider with ChangeNotifier {
   List<TransactionModel> _transactions = [];
+
+  DateTime _selectedDate = DateTime.now();
+
   double _totalIncome = 0.0;
   double _totalExpense = 0.0;
-
-  List<TransactionModel> get transactions => _transactions;
-  double get totalIncome => _totalIncome;
-  double get totalExpense => _totalExpense;
-  double get totalBalance => _totalIncome - _totalExpense;
 
   StreamSubscription<List<TransactionModel>>? _transactionSubscription;
   TransactionService? _service;
@@ -25,6 +23,27 @@ class TransactionProvider with ChangeNotifier {
       _service = TransactionService();
       _startListeningToTransactions();
     }
+  }
+
+  DateTime get selectedDate => _selectedDate;
+
+  List<TransactionModel> get allTransactions => _transactions;
+
+  List<TransactionModel> get filteredTransactions {
+    return _transactions.where((tx) {
+      return tx.date.year == _selectedDate.year &&
+          tx.date.month == _selectedDate.month;
+    }).toList();
+  }
+
+  double get totalIncome => _totalIncome;
+  double get totalExpense => _totalExpense;
+  double get totalBalance => _totalIncome - _totalExpense;
+
+  void changeMonth(int increment) {
+    _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + increment);
+    _calculateSummary();
+    notifyListeners();
   }
 
   void _startListeningToTransactions() {
@@ -41,7 +60,7 @@ class TransactionProvider with ChangeNotifier {
     double income = 0.0;
     double expense = 0.0;
 
-    for (var tx in _transactions) {
+    for (var tx in filteredTransactions) {
       if (tx.type == TransactionType.income) {
         income += tx.amount;
       } else {
@@ -63,13 +82,13 @@ class TransactionProvider with ChangeNotifier {
 
   Map<String, dynamic> getChartData(BuildContext context) {
     Map<String, double> categoryExpenses = {};
-    double totalExpense = 0.0;
+    double currentMonthTotalExpense = 0.0;
 
-    final categoryProvider = Provider.of<CategoryProvider>(context);
+    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
 
-    for (var tx in _transactions) {
+    for (var tx in filteredTransactions) {
       if (tx.type == TransactionType.expense) {
-        totalExpense += tx.amount;
+        currentMonthTotalExpense += tx.amount;
         final String categoryName = categoryProvider
             .getCategoryById(tx.categoryId)
             .name;
@@ -86,7 +105,7 @@ class TransactionProvider with ChangeNotifier {
 
       monthlySummary.putIfAbsent(
         monthKey,
-        () => {'income': 0.0, 'expense': 0.0},
+            () => {'income': 0.0, 'expense': 0.0},
       );
 
       if (tx.type == TransactionType.income) {
@@ -105,16 +124,14 @@ class TransactionProvider with ChangeNotifier {
 
     return {
       'categoryExpenses': categoryExpenses,
-      'totalExpense': totalExpense,
+      'totalExpense': currentMonthTotalExpense,
       'monthlySummary': sortedMonthlySummary,
     };
   }
 
   @override
   void dispose() {
-    if (_transactionSubscription != null) {
-      _transactionSubscription?.cancel();
-    }
+    _transactionSubscription?.cancel();
     super.dispose();
   }
 }

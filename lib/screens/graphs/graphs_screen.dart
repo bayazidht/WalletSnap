@@ -34,7 +34,6 @@ class GraphsScreen extends StatelessWidget {
 
             _buildSectionHeader(colorScheme, 'Spending Habits'),
             const SizedBox(height: 12),
-
             _buildChartContainer(
               colorScheme,
               child: Column(
