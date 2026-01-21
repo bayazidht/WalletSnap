@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum CategoryType { income, expense }
 
@@ -8,30 +7,28 @@ class CategoryModel {
   final String iconName;
   final CategoryType type;
 
-
   CategoryModel({
     required this.id,
     required this.name,
     required this.iconName,
-    required this.type
+    required this.type,
   });
 
-  factory CategoryModel.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+  factory CategoryModel.fromMap(Map<String, dynamic> map) {
     return CategoryModel(
-      id: doc.id,
-      name: data['name'] ?? '',
-      iconName: data['iconName'] ?? '',
-      type: data['type'] == 'income' ? CategoryType.income : CategoryType.expense,
+      id: map['id'].toString(),
+      name: map['name'] ?? '',
+      iconName: map['icon_name'] ?? '',
+      type: map['type'] == 'income' ? CategoryType.income : CategoryType.expense,
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+
+  Map<String, dynamic> toMap() {
     return {
       'name': name,
       'type': type == CategoryType.income ? 'income' : 'expense',
-      'iconName': iconName,
-      'timestamp': FieldValue.serverTimestamp(),
+      'icon_name': iconName,
     };
   }
 }

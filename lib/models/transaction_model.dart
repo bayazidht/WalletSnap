@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TransactionType { income, expense }
 
@@ -21,28 +20,26 @@ class TransactionModel {
     required this.notes
   });
 
-  factory TransactionModel.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+  factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
-      id: doc.id,
-      title: data['title'],
-      amount: (data['amount'] as num).toDouble(),
-      type: data['type'] == 'income' ? TransactionType.income : TransactionType.expense,
-      categoryId: data['categoryId'],
-      date: (data['date'] as Timestamp).toDate(),
-      notes: data['notes']
+      id: map['id'].toString(),
+      title: map['title'] ?? '',
+      amount: (map['amount'] as num).toDouble(),
+      type: map['type'] == 'income' ? TransactionType.income : TransactionType.expense,
+      categoryId: map['category_id'] ?? '',
+      date: DateTime.parse(map['date']),
+      notes: map['notes'] ?? '',
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
       'amount': amount,
       'title': title,
       'type': type == TransactionType.income ? 'income' : 'expense',
-      'categoryId': categoryId,
-      'date': Timestamp.fromDate(date),
+      'category_id': categoryId,
+      'date': date.toIso8601String(),
       'notes': notes,
-      'timestamp': FieldValue.serverTimestamp(),
     };
   }
 }

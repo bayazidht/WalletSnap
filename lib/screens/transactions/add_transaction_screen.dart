@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/models/category_model.dart';
 import 'package:wallet_snap/services/transaction_service.dart';
 import 'package:wallet_snap/providers/category_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/default_category_icons.dart';
@@ -86,7 +86,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null || _selectedCategoryId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a category and sign in.')),

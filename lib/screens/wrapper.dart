@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/screens/auth/sign_in_screen.dart';
 import 'package:wallet_snap/screens/home/base_scaffold.dart';
 
@@ -9,6 +9,7 @@ class Wrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final user = Provider.of<User?>(context);
 
     if (user != null) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -8,7 +8,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
     final authService = Provider.of<AuthService>(context, listen: false);
 
@@ -70,14 +70,14 @@ class ProfileScreen extends StatelessWidget {
             backgroundColor: colorScheme.secondary.withValues(alpha: 0.2),
             child: CircleAvatar(
               radius: 46,
-              backgroundImage: user?.photoURL != null
-                  ? NetworkImage(user!.photoURL!)
+              backgroundImage: user?.userMetadata?['avatar_url'] != null
+                  ? NetworkImage(user!.userMetadata!['avatar_url'])
                   : const AssetImage('assets/images/default_user.png') as ImageProvider,
             ),
           ),
           const SizedBox(height: 15),
           Text(
-            user?.displayName ?? 'WalletSnap User',
+            user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap User',
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           Text(

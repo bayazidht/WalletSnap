@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/data/default_currencies.dart';
 import 'package:wallet_snap/screens/settings/profile_screen.dart';
 import 'package:wallet_snap/screens/settings/manage_categories_screen.dart';
@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final settingsProvider = Provider.of<SettingsProvider>(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -118,8 +118,8 @@ class SettingsScreen extends StatelessWidget {
             CircleAvatar(
               radius: 32,
               backgroundColor: colorScheme.primary,
-              backgroundImage: user?.photoURL != null
-                  ? NetworkImage(user!.photoURL!)
+              backgroundImage: user?.userMetadata?['avatar_url'] != null
+                  ? NetworkImage(user!.userMetadata!['avatar_url'])
                   : const AssetImage('assets/images/default_user.png') as ImageProvider,
             ),
             const SizedBox(width: 16),
@@ -128,7 +128,7 @@ class SettingsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user?.displayName ?? 'WalletSnap User',
+                    user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap User',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -179,7 +179,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   widget,
                   if (idx != items.length - 1)
-                    Divider(height: 1, indent: 60, endIndent: 20, color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    Divider(height: 1, indent: 60, endIndent: 20, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                 ],
               );
             }).toList(),
@@ -196,7 +196,7 @@ class SettingsScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: colorScheme.primary.withOpacity(0.08),
+          color: colorScheme.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: colorScheme.primary, size: 20),

@@ -1,59 +1,50 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/models/category_model.dart';
-
 import '../data/default_categories.dart';
 
 class CategoryService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final User? currentUser = FirebaseAuth.instance.currentUser;
+  final _supabase = Supabase.instance.client;
 
-  late final CollectionReference _categoriesRef;
-
-  CategoryService() {
-    if (currentUser == null) {
-      throw Exception("User is not logged in.");
-    }
-    _categoriesRef = _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
-        .collection('categories');
+  String get _currentUserId {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception("User is not logged in.");
+    return user.id;
   }
 
   Stream<List<CategoryModel>> getCategories() {
-    return _categoriesRef
-        .orderBy('name', descending: false)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => CategoryModel.fromFirestore(doc))
-          .toList();
-    });
+    return _supabase
+        .from('categories')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', _currentUserId)
+        .order('name', ascending: true)
+        .map((data) => data.map((map) => CategoryModel.fromMap(map)).toList());
   }
 
   Future<void> addCategory(CategoryModel category) async {
-    await _categoriesRef.add(category.toFirestore());
+    final data = category.toMap();
+    data['user_id'] = _currentUserId;
+
+    await _supabase.from('categories').insert(data);
   }
 
   Future<void> deleteCategory(String categoryId) async {
-    await _categoriesRef.doc(categoryId).delete();
+    await _supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryId)
+        .eq('user_id', _currentUserId);
   }
 
   Future<void> saveDefaultCategories(String userId) async {
-    final batch = _firestore.batch();
-    final collection = _categoriesRef;
-
-    for (var cat in allDefaultCategories) {
-      final newCatRef = collection.doc();
-
-      final categoryData = {
+    final List<Map<String, dynamic>> categoriesToInsert = allDefaultCategories.map((cat) {
+      return {
+        'user_id': userId,
         'name': cat.name,
-        'iconName': cat.iconName,
+        'icon_name': cat.iconName,
         'type': cat.type == CategoryType.income ? 'income' : 'expense',
       };
+    }).toList();
 
-      batch.set(newCatRef, categoryData);
-    }
-    await batch.commit();
+    await _supabase.from('categories').insert(categoriesToInsert);
   }
 }

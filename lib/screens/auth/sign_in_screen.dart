@@ -4,22 +4,55 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:wallet_snap/services/auth_service.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   void _launchURL(String url) async {}
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.signInWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
+      value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
         backgroundColor: colorScheme.surface,
@@ -27,16 +60,13 @@ class SignInScreen extends StatelessWidget {
           child: Column(
             children: <Widget>[
               Container(
-                height: MediaQuery.of(context).size.height * 0.48,
+                height: MediaQuery.of(context).size.height * 0.4,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.8),
-                    ],
+                    colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
                   ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(50),
@@ -46,13 +76,8 @@ class SignInScreen extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned(
-                      right: -30,
-                      bottom: -20,
-                      child: Icon(
-                        Icons.auto_awesome_rounded,
-                        size: 250,
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
+                      right: -30, bottom: -20,
+                      child: Icon(Icons.auto_awesome_rounded, size: 200, color: Colors.white.withValues(alpha: 0.08)),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -65,33 +90,11 @@ class SignInScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(28),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
                             ),
-                            child: const Icon(
-                              Icons.wallet_rounded,
-                              color: Colors.white,
-                              size: 45,
-                            ),
+                            child: const Icon(Icons.wallet_rounded, color: Colors.white, size: 40),
                           ),
-                          const SizedBox(height: 30),
-                          Text(
-                            'WalletSnap',
-                            style: textTheme.displayMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1.0,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Smart Finance with AI Insights.',
-                            style: textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w300,
-                            ),
-                          ),
+                          const SizedBox(height: 20),
+                          Text('WalletSnap', style: textTheme.headlineLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -100,36 +103,44 @@ class SignInScreen extends StatelessWidget {
               ),
 
               Padding(
-                padding: const EdgeInsets.fromLTRB(30, 50, 30, 30),
+                padding: const EdgeInsets.all(30),
                 child: Column(
                   children: <Widget>[
-                    Text(
-                      'Welcome Back',
-                      style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: colorScheme.onSurface,
+                    Text('Welcome Back', style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 40),
+
+                    _buildTextField(
+                      controller: _emailController,
+                      hint: 'Email Address',
+                      icon: Icons.email_outlined,
+                      colorScheme: colorScheme,
+                    ),
+                    const SizedBox(height: 20),
+
+                    _buildTextField(
+                      controller: _passwordController,
+                      hint: 'Password',
+                      icon: Icons.lock_outline_rounded,
+                      isPassword: true,
+                      colorScheme: colorScheme,
+                    ),
+                    const SizedBox(height: 30),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: FilledButton(
+                        onPressed: _isLoading ? null : _handleLogin,
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Sign In', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Scan receipts, track expenses, and let our AI optimize your budget automatically.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        height: 1.6,
-                      ),
-                    ),
-                    const SizedBox(height: 50),
 
-                    _buildGoogleButton(
-                      context,
-                      authService,
-                      colorScheme,
-                      textTheme,
-                    ),
-
-                    const SizedBox(height: 80),
-
+                    const SizedBox(height: 40),
                     _buildTermsText(colorScheme, textTheme),
                   ],
                 ),
@@ -141,46 +152,26 @@ class SignInScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGoogleButton(
-    BuildContext context,
-    AuthService authService,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return InkWell(
-      onTap: () async => await authService.signInWithGoogle(),
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: double.infinity,
-        height: 64,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/google_logo.png', height: 24),
-            const SizedBox(width: 15),
-            Text(
-              'Continue with Google',
-              style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-              ),
-            ),
-          ],
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    required ColorScheme colorScheme,
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
         ),
       ),
     );
@@ -190,28 +181,18 @@ class SignInScreen extends StatelessWidget {
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.outline,
-          fontSize: 13,
-          height: 1.5,
-        ),
+        style: textTheme.bodySmall?.copyWith(color: colorScheme.outline, fontSize: 13),
         children: [
           const TextSpan(text: 'By signing in, you agree to our\n'),
           TextSpan(
             text: 'Terms of Service',
-            style: TextStyle(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
             recognizer: TapGestureRecognizer()..onTap = () => _launchURL(''),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
             text: 'Privacy Policy',
-            style: TextStyle(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
             recognizer: TapGestureRecognizer()..onTap = () => _launchURL(''),
           ),
         ],

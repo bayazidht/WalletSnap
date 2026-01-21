@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/widgets/transaction_item.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../providers/settings_provider.dart';
 import '../../widgets/summary_card.dart';
@@ -17,7 +17,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TransactionProvider>(context);
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
     final sortedList = List<TransactionModel>.from(
@@ -87,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                user?.displayName?.split(' ')[0] ?? 'WalletSnap',
+                user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap User',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -113,10 +113,9 @@ class HomeScreen extends StatelessWidget {
               child: CircleAvatar(
                 radius: 20,
                 backgroundColor: colorScheme.primaryContainer,
-                backgroundImage: user?.photoURL != null
-                    ? NetworkImage(user!.photoURL!)
-                    : const AssetImage('assets/images/default_user.png')
-                          as ImageProvider,
+                backgroundImage: user?.userMetadata?['avatar_url'] != null
+                    ? NetworkImage(user!.userMetadata!['avatar_url'])
+                    : const AssetImage('assets/images/default_user.png') as ImageProvider,
               ),
             ),
           ),

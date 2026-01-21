@@ -1,65 +1,52 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 
 class TransactionService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final User? currentUser = FirebaseAuth.instance.currentUser;
+  final _supabase = Supabase.instance.client;
 
-  late final CollectionReference _transactionsRef;
-
-  TransactionService() {
-    if (currentUser == null) {
-      throw Exception("User is not logged in.");
-    }
-    _transactionsRef = _firestore
-        .collection('users')
-        .doc(currentUser!.uid)
-        .collection('transactions');
+  String get _currentUserId {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception("User is not logged in.");
+    return user.id;
   }
 
   Future<void> addTransaction(TransactionModel transaction) async {
-    await _transactionsRef.add(transaction.toFirestore());
+    final data = transaction.toMap();
+    data['user_id'] = _currentUserId;
+
+    await _supabase.from('transactions').insert(data);
   }
 
   Stream<List<TransactionModel>> getTransactions() {
-    return _transactionsRef
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => TransactionModel.fromFirestore(doc))
-          .toList();
-    });
+    return _supabase
+        .from('transactions')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', _currentUserId)
+        .order('date', ascending: false)
+        .map((data) => data.map((map) => TransactionModel.fromMap(map)).toList());
   }
 
   Future<void> updateTransaction(TransactionModel transaction) async {
-    await _transactionsRef
-        .doc(transaction.id)
-        .update(transaction.toFirestore());
+    await _supabase
+        .from('transactions')
+        .update(transaction.toMap())
+        .eq('id', transaction.id)
+        .eq('user_id', _currentUserId);
   }
 
   Future<void> deleteTransaction(String transactionId) async {
-    await _transactionsRef.doc(transactionId).delete();
+    await _supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId)
+        .eq('user_id', _currentUserId);
   }
 
-  Future<void> deleteTransactionsByCategory(String categoryName) async {
-    final snapshot = await _transactionsRef
-        .where('categoryName', isEqualTo: categoryName)
-        .get();
-
-    if (snapshot.docs.isNotEmpty) {
-      final batch = _firestore.batch();
-
-      for (final doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-
-      await batch.commit();
-      if (kDebugMode) {
-        print("Successfully deleted ${snapshot.docs.length} transactions for category: $categoryName");
-      }
-    }
+  Future<void> deleteTransactionsByCategory(String categoryId) async {
+    await _supabase
+        .from('transactions')
+        .delete()
+        .eq('category_id', categoryId)
+        .eq('user_id', _currentUserId);
   }
 }
