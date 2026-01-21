@@ -110,7 +110,7 @@ class SettingsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+          color: colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Row(

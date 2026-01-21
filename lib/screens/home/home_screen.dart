@@ -87,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap User',
+                user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -248,25 +248,13 @@ class HomeScreen extends StatelessWidget {
   ) {
     final currency = Provider.of<SettingsProvider>(context).selectedCurrency;
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withValues(alpha: isDark ? 0.1 : 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(28)
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,14 +265,14 @@ class HomeScreen extends StatelessWidget {
               Text(
                 'Total Balance',
                 style: TextStyle(
-                  color: colorScheme.onPrimary.withValues(alpha: 0.7),
+                  color: colorScheme.primary.withValues(alpha: 0.7),
                   fontSize: 15,
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Row(
@@ -294,14 +282,14 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () => provider.changeMonth(-1),
                       icon: Icon(
                         Icons.chevron_left,
-                        color: colorScheme.onPrimary,
+                        color: colorScheme.primary,
                         size: 20,
                       ),
                     ),
                     Text(
                       DateFormat('MMM yyyy').format(provider.selectedDate),
                       style: TextStyle(
-                        color: colorScheme.onPrimary,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -311,7 +299,7 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () => provider.changeMonth(1),
                       icon: Icon(
                         Icons.chevron_right,
-                        color: colorScheme.onPrimary,
+                        color: colorScheme.primary,
                         size: 20,
                       ),
                     ),
@@ -324,7 +312,7 @@ class HomeScreen extends StatelessWidget {
           Text(
             '$currency ${provider.totalBalance.toStringAsFixed(2)}',
             style: TextStyle(
-              color: colorScheme.onPrimary,
+              color: colorScheme.primary,
               fontSize: 34,
               fontWeight: FontWeight.bold,
             ),
@@ -333,7 +321,7 @@ class HomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: colorScheme.onPrimary.withValues(alpha: 0.15),
+              color: colorScheme.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -348,7 +336,7 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   '+12% vs last month',
                   style: TextStyle(
-                    color: colorScheme.onPrimary,
+                    color: colorScheme.primary,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),

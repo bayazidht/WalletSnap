@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // সুপাবেস ইমপোর্ট
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'dart:async';
 
@@ -13,7 +13,7 @@ class TransactionProvider with ChangeNotifier {
   double _totalIncome = 0.0;
   double _totalExpense = 0.0;
 
-  final _supabase = Supabase.instance.client; // সুপাবেস ক্লায়েন্ট
+  final _supabase = Supabase.instance.client;
   StreamSubscription<List<Map<String, dynamic>>>? _transactionSubscription;
 
   TransactionProvider(User? user) {
@@ -85,44 +85,54 @@ class TransactionProvider with ChangeNotifier {
   }
 
   Map<String, dynamic> getChartData(BuildContext context) {
-    Map<String, double> categoryExpenses = {};
+    Map<String, Map<String, dynamic>> categoryExpenses = {};
     double currentMonthTotalExpense = 0.0;
 
     final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
 
-    for (var tx in filteredTransactions) {
+    final monthTransactions = filteredTransactions;
+
+    for (var tx in monthTransactions) {
       if (tx.type == TransactionType.expense) {
         currentMonthTotalExpense += tx.amount;
-        final String categoryName = categoryProvider
-            .getCategoryById(tx.categoryId)
-            .name;
-        categoryExpenses[categoryName] =
-            (categoryExpenses[categoryName] ?? 0) + tx.amount;
+
+        final category = categoryProvider.getCategoryById(tx.categoryId);
+        final String categoryName = category.name;
+        final String iconKey = category.iconName;
+
+        if (categoryExpenses.containsKey(categoryName)) {
+          categoryExpenses[categoryName]!['amount'] += tx.amount;
+        } else {
+          categoryExpenses[categoryName] = {
+            'amount': tx.amount,
+            'icon': iconKey,
+          };
+        }
       }
     }
 
-    Map<String, Map<String, double>> monthlySummary = {};
+    Map<String, Map<String, double>> dailySummary = {};
 
-    for (var tx in _transactions) {
-      final monthKey = '${tx.date.year}-${tx.date.month.toString().padLeft(2, '0')}';
+    for (var tx in monthTransactions) {
+      final String dayKey = tx.date.day.toString().padLeft(2, '0');
 
-      monthlySummary.putIfAbsent(monthKey, () => {'income': 0.0, 'expense': 0.0});
+      dailySummary.putIfAbsent(dayKey, () => {'income': 0.0, 'expense': 0.0});
 
       if (tx.type == TransactionType.income) {
-        monthlySummary[monthKey]!['income'] = monthlySummary[monthKey]!['income']! + tx.amount;
+        dailySummary[dayKey]!['income'] = dailySummary[dayKey]!['income']! + tx.amount;
       } else {
-        monthlySummary[monthKey]!['expense'] = monthlySummary[monthKey]!['expense']! + tx.amount;
+        dailySummary[dayKey]!['expense'] = dailySummary[dayKey]!['expense']! + tx.amount;
       }
     }
 
-    final sortedMonthlySummary = Map.fromEntries(
-      monthlySummary.entries.toList()..sort((e1, e2) => e1.key.compareTo(e2.key)),
+    final sortedDailySummary = Map.fromEntries(
+      dailySummary.entries.toList()..sort((e1, e2) => e1.key.compareTo(e2.key)),
     );
 
     return {
       'categoryExpenses': categoryExpenses,
       'totalExpense': currentMonthTotalExpense,
-      'monthlySummary': sortedMonthlySummary,
+      'dailySummary': sortedDailySummary,
     };
   }
 

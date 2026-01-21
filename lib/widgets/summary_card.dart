@@ -73,7 +73,7 @@ class SummaryCard extends StatelessWidget {
                 context,
                 label: "Expense",
                 amount: "- $currency${expense.toStringAsFixed(0)}",
-                color: Colors.red.shade600,
+                color: colorScheme.error,
                 isIncome: false,
               ),
             ],
