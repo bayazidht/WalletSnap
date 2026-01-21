@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/data/default_currencies.dart';
-import 'package:wallet_snap/screens/settings/profile_screen.dart';
+import 'package:wallet_snap/screens/settings/account_screen.dart';
 import 'package:wallet_snap/screens/settings/manage_categories_screen.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -103,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          MaterialPageRoute(builder: (context) => const AccountScreen()),
         );
       },
       borderRadius: BorderRadius.circular(24),

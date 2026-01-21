@@ -8,7 +8,7 @@ import 'package:wallet_snap/widgets/transaction_item.dart';
 
 import '../../providers/settings_provider.dart';
 import '../../widgets/summary_card.dart';
-import '../settings/profile_screen.dart';
+import '../settings/account_screen.dart';
 import 'base_scaffold.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -106,7 +106,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ProfileScreen(),
+                    builder: (context) => const AccountScreen(),
                   ),
                 );
               },

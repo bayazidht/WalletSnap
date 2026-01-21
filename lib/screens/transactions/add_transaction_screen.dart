@@ -38,7 +38,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     super.initState();
     if (widget.transactionToEdit != null) {
       final tx = widget.transactionToEdit!;
-      _type = tx.type == TransactionType.income ? CategoryType.income : CategoryType.expense;
+      _type = tx.type == TransactionType.income
+          ? CategoryType.income
+          : CategoryType.expense;
       _amount = tx.amount;
       _title = tx.title;
       _selectedCategoryId = tx.categoryId;
@@ -89,20 +91,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null || _selectedCategoryId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a category and sign in.')),
+          const SnackBar(
+            content: Text('Please select a category and sign in.'),
+          ),
         );
         return;
       }
 
       final String transactionId = widget.transactionToEdit?.id ?? '';
-      final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-      final selectedCategoryModel = categoryProvider.getCategoryById(_selectedCategoryId!);
+      final categoryProvider = Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      );
+      final selectedCategoryModel = categoryProvider.getCategoryById(
+        _selectedCategoryId!,
+      );
 
       final transactionToSave = TransactionModel(
         id: transactionId,
         title: _title,
         amount: _amount,
-        type: _type == CategoryType.income ? TransactionType.income : TransactionType.expense,
+        type: _type == CategoryType.income
+            ? TransactionType.income
+            : TransactionType.expense,
         categoryId: selectedCategoryModel.id,
         date: _date,
         notes: _notes,
@@ -114,15 +125,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         if (widget.transactionToEdit != null) {
           await service.updateTransaction(transactionToSave);
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Updated successfully!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Updated successfully!')),
+          );
         } else {
           await service.addTransaction(transactionToSave);
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added successfully!')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Added successfully!')));
         }
         Navigator.pop(context, true);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -145,8 +162,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction',
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          isEditing ? 'Edit Transaction' : 'Add Transaction',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
@@ -160,18 +179,30 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
               SegmentedButton<CategoryType>(
                 segments: const [
-                  ButtonSegment(value: CategoryType.expense, label: Text('Expense'), icon: Icon(Icons.upload_rounded)),
-                  ButtonSegment(value: CategoryType.income, label: Text('Income'), icon: Icon(Icons.download_rounded)),
+                  ButtonSegment(
+                    value: CategoryType.expense,
+                    label: Text('Expense'),
+                    icon: Icon(Icons.upload_rounded),
+                  ),
+                  ButtonSegment(
+                    value: CategoryType.income,
+                    label: Text('Income'),
+                    icon: Icon(Icons.download_rounded),
+                  ),
                 ],
                 selected: {_type},
-                onSelectionChanged: isEditing ? null : (val) {
-                  setState(() {
-                    _type = val.first;
-                    _selectedCategoryId = null;
-                  });
-                },
+                onSelectionChanged: isEditing
+                    ? null
+                    : (val) {
+                        setState(() {
+                          _type = val.first;
+                          _selectedCategoryId = null;
+                        });
+                      },
                 style: SegmentedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -184,16 +215,33 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         textAlign: TextAlign.start,
-                        style: TextStyle(fontSize: 38, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                        style: TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                          height: 1.2,
+                        ),
                         decoration: InputDecoration(
                           hintText: '0.00',
-                          prefixText: '$currency ',
-                          prefixStyle: TextStyle(fontSize: 24, color: colorScheme.primary, fontWeight: FontWeight.bold),
+                          isDense: true,
+                          prefixIcon: Text(
+                            '$currency ',
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                           border: InputBorder.none,
                         ),
-                        validator: (val) => (val == null || val.isEmpty) ? 'Enter amount' : null,
+                        validator: (val) => (val == null || val.isEmpty)
+                            ? 'Enter amount'
+                            : null,
                         onSaved: (val) => _amount = double.parse(val!),
                       ),
                     ),
@@ -203,16 +251,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           onPressed: () {
                             //_showScanOptions(context);
                           },
-                          icon: const Icon(Icons.auto_awesome_rounded, size: 28),
+                          icon: const Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 28,
+                          ),
                           style: IconButton.styleFrom(
                             backgroundColor: colorScheme.primaryContainer,
                             foregroundColor: colorScheme.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
                             padding: const EdgeInsets.all(12),
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text("AI Scan", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: colorScheme.primary)),
+                        Text(
+                          "AI Scan",
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -242,16 +302,27 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   initialValue: _selectedCategoryId,
                   isExpanded: true,
                   decoration: const InputDecoration(border: InputBorder.none),
-                  items: currentCategories.map((cat) => DropdownMenuItem(
-                    value: cat.id,
-                    child: Row(
-                      children: [
-                        Icon(availableIcons[cat.iconName], size: 22, color: colorScheme.primary),
-                        const SizedBox(width: 12),
-                        Text(cat.name, style: const TextStyle(fontSize: 16)),
-                      ],
-                    ),
-                  )).toList(),
+                  items: currentCategories
+                      .map(
+                        (cat) => DropdownMenuItem(
+                          value: cat.id,
+                          child: Row(
+                            children: [
+                              Icon(
+                                availableIcons[cat.iconName],
+                                size: 22,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                cat.name,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (val) => setState(() => _selectedCategoryId = val),
                   onSaved: (val) => _selectedCategoryId = val,
                 ),
@@ -269,9 +340,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(DateFormat('EEEE, MMM dd, yyyy').format(_date),
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                        Icon(Icons.calendar_today_rounded, size: 20, color: colorScheme.primary),
+                        Text(
+                          DateFormat('EEEE, MMM dd, yyyy').format(_date),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: colorScheme.primary,
+                        ),
                       ],
                     ),
                   ),
@@ -303,26 +383,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           onPressed: _submitForm,
           style: FilledButton.styleFrom(
             minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
             elevation: 2,
           ),
-          child: Text(isEditing ? 'Update Transaction' : 'Save Transaction',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          child: Text(
+            isEditing ? 'Update Transaction' : 'Save Transaction',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInputCard(ColorScheme colorScheme, {Widget? child, String? label}) {
+  Widget _buildInputCard(
+    ColorScheme colorScheme, {
+    Widget? child,
+    String? label,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -331,7 +425,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           if (label != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Text(label, style: TextStyle(fontSize: 12, color: colorScheme.primary, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           child ?? const SizedBox.shrink(),
         ],
