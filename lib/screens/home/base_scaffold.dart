@@ -35,7 +35,10 @@ class BaseScaffoldState extends State<BaseScaffold> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _widgetOptions,
+      ),
       floatingActionButton: SizedBox(
         height: 65,
         width: 65,

@@ -45,6 +45,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _date = tx.date;
       _notes = tx.notes;
       _amountController.text = tx.amount.toStringAsFixed(2);
+      _titleController.text = tx.title;
       _notesController.text = tx.notes;
     }
   }
