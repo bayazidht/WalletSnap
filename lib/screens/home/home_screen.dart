@@ -6,7 +6,9 @@ import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/widgets/transaction_item.dart';
 
+import '../../providers/category_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../services/pdf_service.dart';
 import '../../widgets/summary_card.dart';
 import '../settings/account_screen.dart';
 import 'base_scaffold.dart';
@@ -16,12 +18,13 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<TransactionProvider>(context);
+    final transactionProvider = Provider.of<TransactionProvider>(context);
+    final categoryProvider = Provider.of<CategoryProvider>(context);
     final user = Supabase.instance.client.auth.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
     final sortedList = List<TransactionModel>.from(
-      provider.filteredTransactions,
+      transactionProvider.filteredTransactions,
     );
     sortedList.sort((a, b) => b.date.compareTo(a.date));
     final recentTransactions = sortedList.take(4).toList();
@@ -43,8 +46,8 @@ class HomeScreen extends StatelessWidget {
             shouldInclude = true;
           }
         } else {
-          if (tx.date.year == provider.selectedDate.year &&
-              tx.date.month == provider.selectedDate.month) {
+          if (tx.date.year == transactionProvider.selectedDate.year &&
+              tx.date.month == transactionProvider.selectedDate.month) {
             shouldInclude = true;
           }
         }
@@ -61,11 +64,11 @@ class HomeScreen extends StatelessWidget {
     }
 
     final todaySummary = getFilteredSummary(
-      provider.filteredTransactions,
+      transactionProvider.filteredTransactions,
       today: true,
     );
     final monthSummary = getFilteredSummary(
-      provider.filteredTransactions,
+      transactionProvider.filteredTransactions,
       today: false,
     );
 
@@ -97,8 +100,11 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          _buildActionIcon(Icons.search),
-          _buildActionIcon(Icons.notifications_none_rounded, hasBadge: true),
+          IconButton(onPressed: ()  {}, icon: Icon(Icons.search, size: 24)),
+          IconButton(onPressed: () async {
+            final String date = DateFormat('MMMM yyyy').format(transactionProvider.selectedDate);
+            await PdfService.generateTransactionReport(sortedList, categoryProvider.categories, date);
+          }, icon: Icon(Icons.print_outlined, size: 24)),
           Padding(
             padding: const EdgeInsets.only(right: 20, left: 8),
             child: InkWell(
@@ -128,7 +134,7 @@ class HomeScreen extends StatelessWidget {
           children: <Widget>[
             const SizedBox(height: 10),
 
-            _buildMainBalanceCard(context, provider),
+            _buildMainBalanceCard(context, transactionProvider),
 
             const SizedBox(height: 20),
             _buildAIInsightCard(context, colorScheme),
@@ -178,7 +184,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            if (provider.filteredTransactions.isEmpty)
+            if (transactionProvider.filteredTransactions.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
@@ -192,35 +198,6 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 50),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildActionIcon(IconData icon, {bool hasBadge = false}) {
-    return Container(
-      margin: const EdgeInsets.only(left: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.05),
-        shape: BoxShape.circle,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          IconButton(onPressed: () {}, icon: Icon(icon, size: 24)),
-          if (hasBadge)
-            Positioned(
-              right: 12,
-              top: 12,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF5C6BC0),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }

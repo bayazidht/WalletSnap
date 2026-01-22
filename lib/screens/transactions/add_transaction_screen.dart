@@ -254,7 +254,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                             _showScanOptions(context);
                           },
                           icon: const Icon(
-                            Icons.auto_awesome_rounded,
+                            Icons.document_scanner_outlined,
                             size: 28,
                           ),
                           style: IconButton.styleFrom(
@@ -268,7 +268,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "AI Scan",
+                          "Scan",
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,

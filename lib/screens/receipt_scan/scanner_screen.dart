@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/category_provider.dart';
 import '../../services/recipt_scanner_service.dart';
@@ -15,7 +16,9 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _controller;
   bool _isProcessing = false;
+  bool _isFlashOn = false;
   final ReceiptScannerService _scannerService = ReceiptScannerService();
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -35,7 +38,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     try {
       await _controller!.initialize();
-      setState(() {});
+      if (mounted) setState(() {});
     } catch (e) {
       debugPrint("Camera error: $e");
     }
@@ -48,18 +51,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     try {
       final XFile image = await _controller!.takePicture();
-      if (!mounted) return;
+      await _processImage(image.path);
+    } catch (e) {
+      debugPrint("Taking picture error: $e");
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    if (_isProcessing) return;
+
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() => _isProcessing = true);
+        await _processImage(image.path);
+      }
+    } catch (e) {
+      debugPrint("Gallery error: $e");
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _processImage(String path) async {
+    try {
       final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
       final userCategories = categoryProvider.categories;
 
       final Map<String, dynamic>? scanResult = await _scannerService.scanReceipt(
-          image.path,
+          path,
           userCategories
       );
 
       if (mounted) {
         if (scanResult != null) {
-          Navigator.pop(context, scanResult);
+          if (scanResult['amount'] == null || scanResult['amount'].toString().isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("No amount detected. Please try again.")),
+            );
+            return;
+          } else {
+            Navigator.pop(context, scanResult);
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Couldn't detect data. Please try again.")),
@@ -73,6 +106,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    try {
+      if (_isFlashOn) {
+        await _controller!.setFlashMode(FlashMode.off);
+      } else {
+        await _controller!.setFlashMode(FlashMode.torch);
+      }
+      setState(() {
+        _isFlashOn = !_isFlashOn;
+      });
+    } catch (e) {
+      debugPrint("Flash error: $e");
+    }
+  }
+
   @override
   void dispose() {
     _controller?.dispose();
@@ -83,18 +133,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
     }
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
           Positioned.fill(child: CameraPreview(_controller!)),
-
           _buildOverlay(context),
-
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -108,38 +158,63 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-
                   Column(
                     children: [
                       if (_isProcessing)
-                        const CircularProgressIndicator(color: Colors.white)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 20),
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
                       else
-                        GestureDetector(
-                          onTap: _takePictureAndScan,
-                          child: Container(
-                            height: 80,
-                            width: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.photo_library_rounded, color: Colors.white, size: 32),
+                              onPressed: _pickFromGallery,
                             ),
-                            child: Center(
+                            GestureDetector(
+                              onTap: _takePictureAndScan,
                               child: Container(
-                                height: 60,
-                                width: 60,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                height: 80,
+                                width: 80,
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 4),
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    height: 60,
+                                    width: 60,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                            IconButton(
+                              icon: Icon(
+                                _isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                                color: _isFlashOn ? Colors.yellow : Colors.white,
+                                size: 30,
+                              ),
+                              onPressed: _toggleFlash,
+                            ),
+                          ],
                         ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       const Text(
                         "Align receipt within the frame",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
                       ),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ],
@@ -155,17 +230,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Container(
       decoration: ShapeDecoration(
         shape: _ScannerOverlayShape(
-          borderColor: Colors.white,
-          borderRadius: 20,
+          borderColor: Colors.white.withValues(alpha: 0.8),
+          borderRadius: 24,
           borderLength: 40,
-          borderWidth: 8,
-          cutOutSize: MediaQuery.of(context).size.width * 0.8,
+          borderWidth: 6,
+          cutOutSize: MediaQuery.of(context).size.width * 0.75,
         ),
       ),
     );
   }
 }
-
 
 class _ScannerOverlayShape extends ShapeBorder {
   final Color borderColor;
@@ -189,16 +263,14 @@ class _ScannerOverlayShape extends ShapeBorder {
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) => Path();
 
   @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()..addRect(rect);
-  }
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) => Path()..addRect(rect);
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     final width = rect.width;
     final height = rect.height;
     final cutOutRect = Rect.fromCenter(
-      center: Offset(width / 2, height / 2.5),
+      center: Offset(width / 2, height / 2.6),
       width: cutOutSize,
       height: cutOutSize * 1.5,
     );
