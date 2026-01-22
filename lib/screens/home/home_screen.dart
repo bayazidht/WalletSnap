@@ -154,7 +154,7 @@ class HomeScreen extends StatelessWidget {
                   Text(
                     'Recent Transactions',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: colorScheme.onSurface,
                     ),
@@ -187,24 +187,7 @@ class HomeScreen extends StatelessWidget {
               )
             else
               ...recentTransactions.map(
-                (tx) => Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 6,
-                    horizontal: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: TransactionItem(tx: tx),
-                ),
+                (tx) => TransactionItem(tx: tx),
               ),
             const SizedBox(height: 50),
           ],
@@ -416,7 +399,11 @@ class HomeScreen extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               iconAlignment: IconAlignment.end,
-              onPressed: () {},
+              onPressed: () {
+                final BaseScaffoldState? baseScaffoldState = context
+                    .findAncestorStateOfType<BaseScaffoldState>();
+                baseScaffoldState?.setSelectedIndex(2);
+              },
               label: const Text('View Details'),
               icon: const Icon(Icons.chevron_right, size: 18),
               style: TextButton.styleFrom(

@@ -15,7 +15,7 @@ class AccountScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold))
+        title: const Text('Account', style: TextStyle(fontWeight: FontWeight.bold))
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -28,7 +28,7 @@ class AccountScreen extends StatelessWidget {
             const SizedBox(height: 40),
 
             _buildSectionHeader(colorScheme, 'Account Settings'),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
 
             _buildActionTile(
               icon: Icons.logout_rounded,
@@ -96,7 +96,7 @@ class AccountScreen extends StatelessWidget {
         padding: const EdgeInsets.only(left: 12),
         child: Text(
           title.toUpperCase(),
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.outline),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.outline, letterSpacing: 1.1),
         ),
       ),
     );
@@ -117,7 +117,7 @@ class AccountScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withValues(alpha: 0.1)),
-          color: color.withValues(alpha: 0.05),
+          color: color.withValues(alpha: 0.03),
         ),
         child: Row(
           children: [

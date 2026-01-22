@@ -215,13 +215,14 @@ class GraphsScreen extends StatelessWidget {
 
   Widget _buildSectionHeader(ColorScheme colorScheme, String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 8),
+      padding: const EdgeInsets.only(bottom: 4, left: 10),
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
           color: colorScheme.onSurface.withValues(alpha: 0.5),
+          letterSpacing: 1.1
         ),
       ),
     );
@@ -241,9 +242,9 @@ class GraphsScreen extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

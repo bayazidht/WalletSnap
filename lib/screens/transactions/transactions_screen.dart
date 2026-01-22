@@ -151,21 +151,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 ),
               ),
             ),
-            ...txList.map((tx) => Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-              ),
-              child: TransactionItem(tx: tx),
-            )),
+            ...txList.map((tx) => TransactionItem(tx: tx)),
           ],
         );
       },

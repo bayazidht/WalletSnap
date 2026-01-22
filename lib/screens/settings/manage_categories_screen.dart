@@ -174,10 +174,18 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
         final category = categories[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(vertical: 5),
           decoration: BoxDecoration(
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: ListTile(
             leading: Container(

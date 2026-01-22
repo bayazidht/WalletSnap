@@ -302,6 +302,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   initialValue: _selectedCategoryId,
                   isExpanded: true,
                   decoration: const InputDecoration(border: InputBorder.none),
+                  borderRadius: BorderRadius.circular(16),
                   items: currentCategories
                       .map(
                         (cat) => DropdownMenuItem(
@@ -390,7 +391,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
           child: Text(
             isEditing ? 'Update Transaction' : 'Save Transaction',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16),
           ),
         ),
       ),

@@ -214,6 +214,7 @@ class SettingsScreen extends StatelessWidget {
       title: 'Currency',
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          borderRadius: BorderRadius.circular(16),
           value: settingsProvider.selectedCurrency,
           icon: Icon(Icons.arrow_drop_down, color: colorScheme.primary),
           onChanged: (val) => val != null ? settingsProvider.setCurrency(val) : null,
