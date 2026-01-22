@@ -3,12 +3,14 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/models/category_model.dart';
+import 'package:wallet_snap/services/recipt_scanner_service.dart';
 import 'package:wallet_snap/services/transaction_service.dart';
 import 'package:wallet_snap/providers/category_provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/default_category_icons.dart';
 import '../../providers/settings_provider.dart';
+import '../receipt_scan/scanner_screen.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final TransactionModel? transactionToEdit;
@@ -249,7 +251,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       children: [
                         IconButton.filledTonal(
                           onPressed: () {
-                            //_showScanOptions(context);
+                            _showScanOptions(context);
                           },
                           icon: const Icon(
                             Icons.auto_awesome_rounded,
@@ -440,5 +442,24 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showScanOptions(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ScannerScreen()),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _amountController.text = result['amount'] ?? '';
+        _titleController.text = result['title'] ?? '';
+        _notesController.text = result['notes'] ?? '';
+
+        if (result['categoryId'] != null) {
+          _selectedCategoryId = result['categoryId'];
+        }
+      });
+    }
   }
 }
