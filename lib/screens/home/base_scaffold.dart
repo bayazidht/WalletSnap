@@ -67,7 +67,7 @@ class BaseScaffoldState extends State<BaseScaffold> {
 
             const SizedBox(width: 48),
 
-            _buildNavItem(context, Icons.bar_chart, 'Graphs', 2),
+            _buildNavItem(context, Icons.area_chart_outlined, 'Reports', 2),
             _buildNavItem(context, Icons.settings, 'Settings', 3),
           ],
         ),
@@ -92,7 +92,7 @@ class BaseScaffoldState extends State<BaseScaffold> {
               Icon(
                 icon,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                size: 24,
+                size: isSelected? 26 : 24,
               ),
               const SizedBox(height: 2),
               Text(
@@ -101,8 +101,8 @@ class BaseScaffoldState extends State<BaseScaffold> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: isSelected ? 12 : 10,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 ),
               ),
             ],

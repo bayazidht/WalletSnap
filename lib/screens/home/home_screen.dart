@@ -6,10 +6,9 @@ import 'package:wallet_snap/providers/transaction_provider.dart';
 import 'package:wallet_snap/models/transaction_model.dart';
 import 'package:wallet_snap/widgets/transaction_item.dart';
 
-import '../../providers/category_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../services/pdf_service.dart';
 import '../../widgets/summary_card.dart';
+import '../search/search_screen.dart';
 import '../settings/account_screen.dart';
 import 'base_scaffold.dart';
 
@@ -19,7 +18,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
-    final categoryProvider = Provider.of<CategoryProvider>(context);
     final user = Supabase.instance.client.auth.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -100,11 +98,12 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(onPressed: ()  {}, icon: Icon(Icons.search, size: 24)),
-          IconButton(onPressed: () async {
-            final String date = DateFormat('MMMM yyyy').format(transactionProvider.selectedDate);
-            await PdfService.generateTransactionReport(sortedList, categoryProvider.categories, date);
-          }, icon: Icon(Icons.print_outlined, size: 24)),
+          IconButton(onPressed: ()  {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SearchScreen()),
+            );
+          }, icon: Icon(Icons.search, size: 24)),
           Padding(
             padding: const EdgeInsets.only(right: 20, left: 8),
             child: InkWell(

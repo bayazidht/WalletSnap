@@ -60,7 +60,7 @@ class AccountScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+        color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(30),
       ),
       child: Column(
@@ -117,7 +117,7 @@ class AccountScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withValues(alpha: 0.1)),
-          color: color.withValues(alpha: 0.03),
+          color: color.withValues(alpha: 0.05),
         ),
         child: Row(
           children: [

@@ -60,8 +60,8 @@ class _TransactionsScreenState extends State<TransactionsScreen>
   List<TransactionModel> _getFilteredTransactions(List<TransactionModel> allTransactions, int tabIndex) {
     Iterable<TransactionModel> filtered = allTransactions;
 
-    if (tabIndex == 1) filtered = filtered.where((tx) => tx.type == TransactionType.income);
-    if (tabIndex == 2) filtered = filtered.where((tx) => tx.type == TransactionType.expense);
+    if (tabIndex == 1) filtered = filtered.where((tx) => tx.type == TransactionType.expense);
+    if (tabIndex == 2) filtered = filtered.where((tx) => tx.type == TransactionType.income);
 
     if (_selectedType != null) filtered = filtered.where((tx) => tx.type == _selectedType);
     if (_selectedCategoryId != null) filtered = filtered.where((tx) => tx.categoryId == _selectedCategoryId);
@@ -101,7 +101,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           labelColor: colorScheme.primary,
           unselectedLabelColor: Colors.grey,
           indicatorSize: TabBarIndicatorSize.label,
-          tabs: const [Tab(text: 'All'), Tab(text: 'Income'), Tab(text: 'Expense')],
+          tabs: const [Tab(text: 'All'), Tab(text: 'Expense'), Tab(text: 'Income')],
         ),
       ),
       body: TabBarView(
@@ -268,6 +268,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
+          borderRadius: BorderRadius.circular(16),
           value: value, isExpanded: true, hint: Text(hint), items: items,
           onChanged: enabled ? (val) => onChanged(val as T) : null,
         ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:wallet_snap/providers/category_provider.dart';
 import 'package:wallet_snap/providers/transaction_provider.dart';
 import '../../data/default_category_icons.dart';
 import '../../providers/settings_provider.dart';
+import '../../services/pdf_service.dart';
 
 class GraphsScreen extends StatelessWidget {
   const GraphsScreen({super.key});
@@ -11,6 +14,7 @@ class GraphsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
+    final categoryProvider = Provider.of<CategoryProvider>(context);
     final chartData = transactionProvider.getChartData(context);
     final currency = Provider.of<SettingsProvider>(context).selectedCurrency;
     final colorScheme = Theme.of(context).colorScheme;
@@ -28,6 +32,31 @@ class GraphsScreen extends StatelessWidget {
           'Analytics',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: TextButton.icon(
+              onPressed: () async {
+                final String date = DateFormat(
+                  'MMMM yyyy',
+                ).format(transactionProvider.selectedDate);
+                await PdfService.generateTransactionReport(
+                  transactionProvider.filteredTransactions,
+                  categoryProvider.categories,
+                  date,
+                );
+              },
+              icon: const Icon(Icons.print, size: 18),
+              label: const Text(
+                "Export",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -222,7 +251,7 @@ class GraphsScreen extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: colorScheme.onSurface.withValues(alpha: 0.5),
-          letterSpacing: 1.1
+          letterSpacing: 1.1,
         ),
       ),
     );
@@ -289,8 +318,8 @@ class GraphsScreen extends StatelessWidget {
           Text(
             'Your spending is 12% lower than last month. Keep it up!',
             style: TextStyle(
-              color: colorScheme.onSurface.withValues(alpha: 0.8),
-              fontSize: 16,
+              color: colorScheme.onSurface.withValues(alpha: 0.9),
+              fontSize: 15,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -300,14 +329,17 @@ class GraphsScreen extends StatelessWidget {
   }
 
   Widget _buildDailyGraph(
-      BuildContext context,
-      Map<String, Map<String, double>> dailySummary,
-      String currency,
-      ) {
+    BuildContext context,
+    Map<String, Map<String, double>> dailySummary,
+    String currency,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (dailySummary.isEmpty) {
-      return const SizedBox(height: 200, child: Center(child: Text('No entries found')));
+      return const SizedBox(
+        height: 200,
+        child: Center(child: Text('No data found')),
+      );
     }
 
     final days = dailySummary.keys.toList()..sort();
@@ -348,15 +380,22 @@ class GraphsScreen extends StatelessWidget {
               ),
               titlesData: FlTitlesData(
                 show: true,
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 40,
                     getTitlesWidget: (value, meta) => Text(
                       _formatAmount(value),
-                      style: TextStyle(color: colorScheme.outline, fontSize: 10),
+                      style: TextStyle(
+                        color: colorScheme.outline,
+                        fontSize: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -367,7 +406,8 @@ class GraphsScreen extends StatelessWidget {
                     interval: 3,
                     getTitlesWidget: (val, meta) {
                       int index = val.toInt();
-                      if (index < 0 || index >= days.length) return const SizedBox();
+                      if (index < 0 || index >= days.length)
+                        return const SizedBox();
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
@@ -387,7 +427,10 @@ class GraphsScreen extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: List.generate(days.length, (i) {
-                    return FlSpot(i.toDouble(), dailySummary[days[i]]!['income'] ?? 0);
+                    return FlSpot(
+                      i.toDouble(),
+                      dailySummary[days[i]]!['income'] ?? 0,
+                    );
                   }),
                   isCurved: true,
                   color: colorScheme.primary,
@@ -395,12 +438,13 @@ class GraphsScreen extends StatelessWidget {
                   isStrokeCapRound: true,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                      radius: 3,
-                      color: Colors.white,
-                      strokeWidth: 2,
-                      strokeColor: colorScheme.primary,
-                    ),
+                    getDotPainter: (spot, percent, barData, index) =>
+                        FlDotCirclePainter(
+                          radius: 3,
+                          color: Colors.white,
+                          strokeWidth: 2,
+                          strokeColor: colorScheme.primary,
+                        ),
                   ),
                   belowBarData: BarAreaData(
                     show: true,
@@ -416,7 +460,10 @@ class GraphsScreen extends StatelessWidget {
                 ),
                 LineChartBarData(
                   spots: List.generate(days.length, (i) {
-                    return FlSpot(i.toDouble(), dailySummary[days[i]]!['expense'] ?? 0);
+                    return FlSpot(
+                      i.toDouble(),
+                      dailySummary[days[i]]!['expense'] ?? 0,
+                    );
                   }),
                   isCurved: true,
                   color: colorScheme.error,
@@ -424,12 +471,13 @@ class GraphsScreen extends StatelessWidget {
                   isStrokeCapRound: true,
                   dotData: FlDotData(
                     show: true,
-                    getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                      radius: 3,
-                      color: Colors.white,
-                      strokeWidth: 2,
-                      strokeColor: colorScheme.error,
-                    ),
+                    getDotPainter: (spot, percent, barData, index) =>
+                        FlDotCirclePainter(
+                          radius: 3,
+                          color: Colors.white,
+                          strokeWidth: 2,
+                          strokeColor: colorScheme.error,
+                        ),
                   ),
                   belowBarData: BarAreaData(
                     show: true,
@@ -450,13 +498,20 @@ class GraphsScreen extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           "Dates with Transactions",
-          style: TextStyle(color: colorScheme.outline, fontSize: 11, fontStyle: FontStyle.italic),
+          style: TextStyle(
+            color: colorScheme.outline,
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
   }
 
-  double _calculateMaxY(Map<String, Map<String, double>> summary, List<String> keys) {
+  double _calculateMaxY(
+    Map<String, Map<String, double>> summary,
+    List<String> keys,
+  ) {
     double max = 0;
     for (var key in keys) {
       double inc = summary[key]?['income'] ?? 0;

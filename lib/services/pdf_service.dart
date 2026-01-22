@@ -17,8 +17,10 @@ class PdfService {
       debugPrint("Transaction: ${t.title}, Amount: ${t.amount}, Type: '${t.type}'");
     }
 
-    final incomes = transactions.where((t) => t.type.toString().contains('income')).toList();
-    final expenses = transactions.where((t) => t.type.toString().contains('expense')).toList();
+    final incomes = transactions.where((t) => t.type == TransactionType.income).toList();
+    incomes.sort((a, b) => a.date.compareTo(b.date));
+    final expenses = transactions.where((t) => t.type == TransactionType.expense).toList();
+    expenses.sort((a, b) => a.date.compareTo(b.date));
 
     final totalIncome = incomes.fold(0.0, (sum, item) => sum + item.amount);
     final totalExpense = expenses.fold(0.0, (sum, item) => sum + item.amount);
