@@ -21,27 +21,34 @@ class TransactionDetailScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final currentTx = transactionProvider.filteredTransactions.firstWhere(
-          (element) => element.id == transaction.id,
+      (element) => element.id == transaction.id,
       orElse: () => transaction,
     );
 
     final isIncome = currentTx.type == TransactionType.income;
-    final categoryModel = Provider.of<CategoryProvider>(context).getCategoryById(currentTx.categoryId);
+    final categoryModel = Provider.of<CategoryProvider>(
+      context,
+    ).getCategoryById(currentTx.categoryId);
     final amountColor = isIncome ? Colors.green.shade600 : colorScheme.error;
 
     Future<void> deleteTransaction() async {
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Delete Transaction?'),
           content: const Text('This action cannot be undone. Are you sure?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+
+            TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete'),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -51,7 +58,9 @@ class TransactionDetailScreen extends StatelessWidget {
         await transactionProvider.deleteTransaction(currentTx.id);
         if (context.mounted) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transaction deleted')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Transaction deleted')));
         }
       }
     }
@@ -59,7 +68,10 @@ class TransactionDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Details',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
       ),
@@ -87,7 +99,11 @@ class TransactionDetailScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       categoryModel.name,
-                      style: TextStyle(fontSize: 18, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -110,9 +126,15 @@ class TransactionDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10))
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
                     ],
                   ),
                   child: Column(
@@ -182,9 +204,13 @@ class TransactionDetailScreen extends StatelessWidget {
                     Expanded(
                       child: _buildActionButton(
                         onPressed: () async {
-                          await Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => AddTransactionScreen(transactionToEdit: currentTx),
-                          ));
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => AddTransactionScreen(
+                                transactionToEdit: currentTx,
+                              ),
+                            ),
+                          );
                         },
                         icon: Icons.edit_rounded,
                         label: 'Edit',
@@ -202,12 +228,21 @@ class TransactionDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(ColorScheme colorScheme, IconData icon, String label, String value, Color iconColor) {
+  Widget _buildInfoTile(
+    ColorScheme colorScheme,
+    IconData icon,
+    String label,
+    String value,
+    Color iconColor,
+  ) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Icon(icon, size: 20, color: iconColor),
         ),
         const SizedBox(width: 16),
@@ -215,9 +250,21 @@ class TransactionDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -236,24 +283,34 @@ class TransactionDetailScreen extends StatelessWidget {
       height: 56,
       child: isOutlined
           ? OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20),
-        label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color.withValues(alpha: 0.5)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      )
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: color,
+                side: BorderSide(color: color.withValues(alpha: 0.5)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            )
           : FilledButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20),
-        label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-        style: FilledButton.styleFrom(
-          backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-      ),
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: color,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
     );
   }
 }

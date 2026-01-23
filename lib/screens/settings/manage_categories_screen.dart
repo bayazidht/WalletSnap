@@ -213,14 +213,10 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen>
         content: Text('Are you sure you want to delete "${category.name}"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: TextStyle(color: colorScheme.outline))),
-          FilledButton(
-            onPressed: () {
-              provider.deleteCategory(category.id);
-              Navigator.pop(ctx);
-            },
-            style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
-            child: const Text('Delete'),
-          ),
+          TextButton(onPressed: () {
+            provider.deleteCategory(category.id);
+            Navigator.pop(ctx);
+          }, child: const Text('Delete', style: TextStyle(color: Colors.red)))
         ],
       ),
     );
