@@ -72,7 +72,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
       try {
         if (widget.transactionToEdit != null) {
-          // ১. ট্রানজ্যাকশন আপডেট (Edit Mode)
           final updatedTx = widget.transactionToEdit!.copyWith(
             title: _title,
             amount: _amount,
@@ -86,7 +85,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               .read(transactionProvider.notifier)
               .updateTransaction(updatedTx);
         } else {
-          // ২. নতুন ট্রানজ্যাকশন যোগ করা (Add Mode)
           await ref
               .read(transactionProvider.notifier)
               .addTransaction(
@@ -126,12 +124,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currency = ref.watch(settingsProvider);
+    final currency = ref.watch(settingsProvider).currency;
 
     final categories = ref.watch(categoryProvider);
     final filteredCategories = categories
         .where((c) => c.type.name == _type.name)
         .toList();
+
+    if (_selectedCategoryId == null && filteredCategories.isNotEmpty) {
+      _selectedCategoryId = filteredCategories.first.id;
+    }
 
     final isEditing = widget.transactionToEdit != null;
 
@@ -150,7 +152,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           child: Column(
             children: [
               const SizedBox(height: 10),
-              // টাইপ সিলেক্টর
               SegmentedButton<TransactionType>(
                 segments: const [
                   ButtonSegment(
@@ -171,13 +172,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         setState(() {
                           _type = val.first;
                           _selectedCategoryId =
-                              null; // টাইপ চেঞ্জ হলে ক্যাটাগরি রিসেট
+                              null;
                         });
                       },
               ),
               const SizedBox(height: 24),
 
-              // অ্যামাউন্ট ইনপুট
               _buildInputCard(
                 colorScheme,
                 child: Row(
@@ -218,8 +218,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
+
               _buildInputCard(
                 colorScheme,
                 label: "Title",
@@ -320,7 +320,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                DateFormat('EEEE, MMM dd, yyyy').format(_date),
+                DateFormat('EEEE, dd MMM yyyy').format(_date),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
