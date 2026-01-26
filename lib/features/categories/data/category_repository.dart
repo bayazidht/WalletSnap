@@ -53,5 +53,19 @@ class CategoryRepository {
         debugPrint("Category sync error: $e");
       }
     }
+
+    try {
+      final response = await _supabase
+          .from('categories')
+          .select()
+          .eq('user_id', user.id);
+      for (var cloudData in response) {
+        final cat = CategoryModel.fromMap(cloudData);
+        cat.isSynced = true;
+        await _box.put(cat.id, cat);
+      }
+        } catch (e) {
+      debugPrint("Category download error: $e");
+    }
   }
 }

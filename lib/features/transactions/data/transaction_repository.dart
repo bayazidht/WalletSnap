@@ -54,6 +54,21 @@ class TransactionRepository {
         debugPrint("Sync delete error: $e");
       }
     }
+
+    try {
+      final response = await _supabase
+          .from('transactions')
+          .select()
+          .eq('user_id', user.id);
+
+      for (var cloudData in response) {
+        final tx = TransactionModel.fromMap(cloudData);
+        tx.isSynced = true;
+        await _box.put(tx.id, tx);
+      }
+        } catch (e) {
+      debugPrint("Sync download error: $e");
+    }
   }
 
   Future<void> deleteTransactionsByCategory(String categoryId) async {
