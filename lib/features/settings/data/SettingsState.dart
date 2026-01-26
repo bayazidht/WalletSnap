@@ -1,3 +1,5 @@
+import '../../../core/constants/default_currencies.dart';
+
 class SettingsState {
   final String currency;
   final bool isCloudBackupEnabled;
@@ -8,6 +10,15 @@ class SettingsState {
     required this.isCloudBackupEnabled,
     required this.lastSyncTime,
   });
+
+  String get currencySymbol {
+    return defaultCurrencies
+        .firstWhere(
+          (c) => c.code == currency,
+          orElse: () => defaultCurrencies.first,
+        )
+        .symbol;
+  }
 
   SettingsState copyWith({
     String? currency,

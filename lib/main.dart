@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wallet_snap/features/categories/data/category_model.dart';
-import 'package:wallet_snap/core/theme/theme_provider.dart'; // রিভারপড ভার্সন হতে হবে
+import 'package:wallet_snap/core/theme/theme_provider.dart';
 import 'package:wallet_snap/features/auth/ui/auth_gate.dart';
 
 import 'features/settings/logic/settings_provider.dart';

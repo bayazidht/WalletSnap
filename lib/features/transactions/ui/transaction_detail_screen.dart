@@ -20,7 +20,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
     final transactions = ref.watch(transactionProvider);
     final currentTx = transactions.firstWhere(
           (element) => element.id == transaction.id,
@@ -110,7 +110,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${isIncome ? '+' : '-'}$currency${currentTx.amount.toStringAsFixed(2)}',
+                      '${isIncome ? '+' : '-'}$currencySymbol${currentTx.amount.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontSize: 42,
                         fontWeight: FontWeight.bold,

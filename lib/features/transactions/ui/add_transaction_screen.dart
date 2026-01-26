@@ -124,7 +124,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
 
     final categories = ref.watch(categoryProvider);
     final filteredCategories = categories
@@ -196,7 +196,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                         decoration: InputDecoration(
                           hintText: '0.00',
                           prefixIcon: Text(
-                            '$currency ',
+                            '$currencySymbol ',
                             style: TextStyle(
                               fontSize: 24,
                               color: colorScheme.primary,

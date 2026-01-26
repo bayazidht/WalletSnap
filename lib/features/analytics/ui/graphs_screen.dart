@@ -33,7 +33,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     final categories = ref.watch(categoryProvider);
     final chartData = ref.watch(chartDataProvider);
     final selectedDate = ref.watch(transactionProvider.notifier).selectedDate;
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
 
     final categoryExpenses =
     chartData['categoryExpenses'] as Map<String, Map<String, dynamic>>;
@@ -77,7 +77,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildAIInsightCard(colorScheme, totalExpense, currency),
+            _buildAIInsightCard(colorScheme, totalExpense, currencySymbol),
             const SizedBox(height: 30),
             _buildSectionHeader(colorScheme, 'Spending Analysis'),
             _buildChartContainer(
@@ -88,7 +88,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
                     context,
                     categoryExpenses,
                     totalExpense,
-                    currency,
+                    currencySymbol,
                   ),
                   const SizedBox(height: 30),
                   _buildLegend(context, categoryExpenses, totalExpense, categories),
@@ -99,7 +99,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
             _buildSectionHeader(colorScheme, 'Monthly Flow Analysis'),
             _buildChartContainer(
               colorScheme,
-              child: _buildDailyGraph(context, dailySummary, currency),
+              child: _buildDailyGraph(context, dailySummary, currencySymbol),
             ),
             const SizedBox(height: 50),
           ],

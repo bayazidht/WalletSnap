@@ -16,7 +16,7 @@ class SummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -64,7 +64,7 @@ class SummaryCard extends ConsumerWidget {
               _buildSummaryItem(
                 context,
                 label: "Income",
-                amount: "+ $currency${income.toStringAsFixed(0)}",
+                amount: "+ $currencySymbol${income.toStringAsFixed(0)}",
                 color: Colors.green.shade600,
                 isIncome: true,
               ),
@@ -76,7 +76,7 @@ class SummaryCard extends ConsumerWidget {
               _buildSummaryItem(
                 context,
                 label: "Expense",
-                amount: "- $currency${expense.toStringAsFixed(0)}",
+                amount: "- $currencySymbol${expense.toStringAsFixed(0)}",
                 color: colorScheme.error,
                 isIncome: false,
               ),

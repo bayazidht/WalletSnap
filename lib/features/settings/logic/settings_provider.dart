@@ -15,7 +15,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   @override
   SettingsState build() {
     return SettingsState(
-      currency: '\$',
+      currency: 'USD',
       isCloudBackupEnabled: true,
       lastSyncTime: 'Never',
     );
@@ -24,7 +24,7 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final currency = prefs.getString(_currencyKey) ?? '\$';
+    final currency = prefs.getString(_currencyKey) ?? 'USD';
     final isBackupEnabled = prefs.getBool(_backupKey) ?? true;
     final lastSync = prefs.getString(_syncKey) ?? 'Never';
 

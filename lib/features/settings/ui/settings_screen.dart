@@ -15,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final themeMode = ref.watch(themeProvider);
-    final currencySymbol = ref.watch(settingsProvider).currency;
+    final currencyCode = ref.watch(settingsProvider).currency;
 
     final user = Supabase.instance.client.auth.currentUser;
 
@@ -42,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Manage Categories',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageCategoriesScreen())),
               ),
-              _buildCurrencyTile(context, colorScheme, ref, currencySymbol),
+              _buildCurrencyTile(context, colorScheme, ref, currencyCode),
             ],
           ),
           const SizedBox(height: 24),
@@ -95,27 +95,85 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurrencyTile(BuildContext context, ColorScheme colorScheme, WidgetRef ref, String currentSymbol) {
+  Widget _buildCurrencyTile(BuildContext context, ColorScheme colorScheme, WidgetRef ref, String currencyCode) {
+
     return _buildListTile(
       context,
       icon: Icons.payments_outlined,
       title: 'Currency',
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          borderRadius: BorderRadius.circular(16),
-          value: currentSymbol,
-          icon: Icon(Icons.arrow_drop_down, color: colorScheme.primary),
-          onChanged: (val) {
-            if (val != null) {
-              ref.read(settingsProvider.notifier).setCurrency(val);
-            }
-          },
-          items: defaultCurrencies.map((c) => DropdownMenuItem(
-              value: c.symbol,
-              child: Text(c.code, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
-          )).toList(),
-        ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            currencyCode,
+            style: TextStyle(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Icon(Icons.chevron_right),
+        ],
       ),
+      onTap: () => _showCurrencyPicker(context, colorScheme, ref, currencyCode),
+    );
+  }
+
+  void _showCurrencyPicker(BuildContext context, ColorScheme colorScheme, WidgetRef ref, String currencyCode) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Select Currency',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: defaultCurrencies.length,
+                itemBuilder: (context, index) {
+                  final currency = defaultCurrencies[index];
+                  final isSelected = currency.code == currencyCode;
+
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+                      child: Text(
+                        currency.symbol,
+                        style: TextStyle(
+                          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text('${currency.name} (${currency.code})',
+                      style: const TextStyle(fontWeight: FontWeight.w400),
+                    ),
+                    trailing: isSelected
+                        ? Icon(Icons.check_circle, color: colorScheme.primary)
+                        : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).setCurrency(currency.code);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 

@@ -17,7 +17,7 @@ class TransactionItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
     final categories = ref.watch(categoryProvider);
 
     final categoryModel = categories.firstWhere(
@@ -115,7 +115,7 @@ class TransactionItem extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${isIncome ? '+' : '-'}$currency${tx.amount.toStringAsFixed(tx.amount % 1 == 0 ? 0 : 2)}',
+                    '${isIncome ? '+' : '-'}$currencySymbol${tx.amount.toStringAsFixed(tx.amount % 1 == 0 ? 0 : 2)}',
                     style: TextStyle(
                       color: color,
                       fontSize: 16,

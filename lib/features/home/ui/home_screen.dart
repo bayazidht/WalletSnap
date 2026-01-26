@@ -31,7 +31,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = Supabase.instance.client.auth.currentUser;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final currency = ref.watch(settingsProvider).currency;
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
     final transactions = ref.watch(filteredTransactionsProvider);
     final todaySummary = ref.watch(todaySummaryProvider);
     final monthSummary = ref.watch(monthSummaryProvider);
@@ -81,7 +81,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             const SizedBox(height: 10),
 
-            _buildMainBalanceCard(context, ref, totalBalance, currency),
+            _buildMainBalanceCard(context, ref, totalBalance, currencySymbol),
             const SizedBox(height: 20),
 
             _buildAIInsightCard(context, colorScheme),
