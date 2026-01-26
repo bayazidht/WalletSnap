@@ -4,6 +4,8 @@ import 'package:uuid/uuid.dart';
 import '../data/transaction_model.dart';
 import '../data/transaction_repository.dart';
 
+final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
 final transactionRepositoryProvider = Provider(
   (ref) => TransactionRepository(),
 );
@@ -15,26 +17,15 @@ final transactionProvider =
 
 class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   final TransactionRepository _repo;
-  DateTime _selectedDate = DateTime.now();
 
   TransactionNotifier(this._repo) : super([]) {
     loadLocalData();
   }
 
-  DateTime get selectedDate => _selectedDate;
-
   void loadLocalData() {
     final data = _repo.getAllLocal();
-    data.sort((a, b) => b.date.compareTo(a.date));
-    state = data;
-  }
-
-  void changeMonth(int increment) {
-    _selectedDate = DateTime(
-      _selectedDate.year,
-      _selectedDate.month + increment,
-    );
-    state = [...state];
+    state = [...data.where((tx) => !tx.isDeleted)]
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   Future<void> addTransaction({
@@ -80,9 +71,9 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   }
 }
 
-final filteredTransactionsProvider = Provider((ref) {
+final filteredTransactionsProvider = Provider<List<TransactionModel>>((ref) {
   final allTransactions = ref.watch(transactionProvider);
-  final selectedDate = ref.watch(transactionProvider.notifier).selectedDate;
+  final selectedDate = ref.watch(selectedDateProvider);
 
   return allTransactions.where((tx) {
     return tx.date.year == selectedDate.year &&
@@ -106,22 +97,26 @@ final monthSummaryProvider = Provider((ref) {
 });
 
 final todaySummaryProvider = Provider((ref) {
-  final allTransactions = ref.watch(transactionProvider);
+  final transactions = ref.watch(filteredTransactionsProvider);
   final now = DateTime.now();
   double income = 0;
   double expense = 0;
 
-  for (var tx in allTransactions) {
-    if (tx.date.year == now.year &&
+  final todayTxs = transactions.where(
+    (tx) =>
+        tx.date.year == now.year &&
         tx.date.month == now.month &&
-        tx.date.day == now.day) {
-      if (tx.type == TransactionType.income) {
-        income += tx.amount;
-      } else {
-        expense += tx.amount;
-      }
+        tx.date.day == now.day,
+  );
+
+  for (var tx in todayTxs) {
+    if (tx.type == TransactionType.income) {
+      income += tx.amount;
+    } else {
+      expense += tx.amount;
     }
   }
+
   return {'income': income, 'expense': expense};
 });
 

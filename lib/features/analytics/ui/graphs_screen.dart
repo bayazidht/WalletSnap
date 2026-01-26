@@ -17,23 +17,16 @@ class GraphsScreen extends ConsumerStatefulWidget {
 }
 
 class _GraphsScreenState extends ConsumerState<GraphsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(transactionProvider.notifier).loadLocalData();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final selectedDate = ref.watch(selectedDateProvider);
+    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
     final transactions = ref.watch(filteredTransactionsProvider);
     final categories = ref.watch(categoryProvider);
     final chartData = ref.watch(chartDataProvider);
-    final selectedDate = ref.watch(transactionProvider.notifier).selectedDate;
-    final currencySymbol = ref.watch(settingsProvider).currencySymbol;
 
     final categoryExpenses =
     chartData['categoryExpenses'] as Map<String, Map<String, dynamic>>;
@@ -123,18 +116,13 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     );
   }
 
-  Widget _buildChartContainer(
-      ColorScheme colorScheme, {
-        required Widget child,
-      }) {
+  Widget _buildChartContainer(ColorScheme colorScheme, {required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -147,11 +135,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     );
   }
 
-  Widget _buildAIInsightCard(
-      ColorScheme colorScheme,
-      double totalExpense,
-      String currency,
-      ) {
+  Widget _buildAIInsightCard(ColorScheme colorScheme, double totalExpense, String currency) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -163,11 +147,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.auto_awesome_rounded,
-                color: colorScheme.primary,
-                size: 20,
-              ),
+              Icon(Icons.auto_awesome_rounded, color: colorScheme.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AI INSIGHT',
@@ -192,25 +172,10 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     );
   }
 
-  Widget _buildPieChart(
-      BuildContext context,
-      Map<String, Map<String, dynamic>> categoryExpenses,
-      double totalExpense,
-      String currency,
-      ) {
-    if (categoryExpenses.isEmpty) {
-      return const SizedBox(height: 200, child: Center(child: Text('No Data')));
-    }
+  Widget _buildPieChart(BuildContext context, Map<String, Map<String, dynamic>> categoryExpenses, double totalExpense, String currency) {
+    if (categoryExpenses.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No Data')));
     final colorScheme = Theme.of(context).colorScheme;
-    final List<Color> colorPalette = [
-      colorScheme.primary,
-      colorScheme.tertiary,
-      colorScheme.secondary,
-      colorScheme.error,
-      Colors.cyan,
-      Colors.orange,
-    ];
-
+    final List<Color> colorPalette = [colorScheme.primary, colorScheme.tertiary, colorScheme.secondary, colorScheme.error, Colors.cyan, Colors.orange];
     int i = 0;
     return SizedBox(
       height: 220,
@@ -223,36 +188,15 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
               centerSpaceRadius: 75,
               sections: categoryExpenses.entries.map((entry) {
                 final color = colorPalette[i++ % colorPalette.length];
-                final double value = entry.value['amount'];
-                return PieChartSectionData(
-                  color: color,
-                  value: value,
-                  radius: 18,
-                  showTitle: false,
-                );
+                return PieChartSectionData(color: color, value: entry.value['amount'], radius: 18, showTitle: false);
               }).toList(),
             ),
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Total Spent',
-                style: TextStyle(
-                  color: colorScheme.outline,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$currency${totalExpense.toStringAsFixed(0)}',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+              Text('Total Spent', style: TextStyle(color: colorScheme.outline, fontSize: 13, fontWeight: FontWeight.w500)),
+              Text('$currency${totalExpense.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onSurface, fontSize: 24, fontWeight: FontWeight.w900)),
             ],
           ),
         ],
@@ -260,93 +204,29 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     );
   }
 
-  Widget _buildLegend(
-      BuildContext context,
-      Map<String, Map<String, dynamic>> categoryExpenses,
-      double totalExpense,
-      List<CategoryModel> categories,
-      ) {
+  Widget _buildLegend(BuildContext context, Map<String, Map<String, dynamic>> categoryExpenses, double totalExpense, List<CategoryModel> categories) {
     final colorScheme = Theme.of(context).colorScheme;
-    final List<Color> colorPalette = [
-      colorScheme.primary,
-      colorScheme.tertiary,
-      colorScheme.secondary,
-      colorScheme.error,
-      Colors.cyan,
-      Colors.orange,
-    ];
-
+    final List<Color> colorPalette = [colorScheme.primary, colorScheme.tertiary, colorScheme.secondary, colorScheme.error, Colors.cyan, Colors.orange];
     int i = 0;
     return Column(
       children: categoryExpenses.entries.map((entry) {
         final color = colorPalette[i++ % colorPalette.length];
-
-        // আইডি দিয়ে ক্যাটাগরি অবজেক্ট খুঁজে বের করা
-        final String categoryId = entry.key;
-        final category = categories.firstWhere(
-              (c) => c.id == categoryId,
-          orElse: () => CategoryModel(
-            id: 'unknown',
-            name: 'Unknown',
-            iconName: 'category',
-            type: CategoryType.expense,
-          ),
-        );
-
-        final String categoryName = category.name;
-        final String iconKey = category.iconName;
-        final double amount = entry.value['amount'];
-
-        final percentage = totalExpense > 0 ? (amount / totalExpense) : 0.0;
-
+        final category = categories.firstWhere((c) => c.id == entry.key, orElse: () => CategoryModel(id: 'unknown', name: 'Unknown', iconName: 'category', type: CategoryType.expense));
+        final percentage = totalExpense > 0 ? (entry.value['amount'] / totalExpense) : 0.0;
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Column(
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      availableIcons[iconKey] ?? Icons.category_rounded,
-                      size: 18,
-                      color: color,
-                    ),
-                  ),
+                  Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(availableIcons[category.iconName] ?? Icons.category_rounded, size: 18, color: color)),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      categoryName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${(percentage * 100).toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      color: colorScheme.outline,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Expanded(child: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                  Text('${(percentage * 100).toStringAsFixed(1)}%', style: TextStyle(color: colorScheme.outline, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: percentage,
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  color: color,
-                  minHeight: 8,
-                ),
-              ),
+              ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(value: percentage, backgroundColor: color.withValues(alpha: 0.1), color: color, minHeight: 8)),
             ],
           ),
         );
@@ -354,20 +234,9 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
     );
   }
 
-  Widget _buildDailyGraph(
-      BuildContext context,
-      Map<String, Map<String, double>> dailySummary,
-      String currency,
-      ) {
+  Widget _buildDailyGraph(BuildContext context, Map<String, Map<String, double>> dailySummary, String currency) {
     final colorScheme = Theme.of(context).colorScheme;
-
-    if (dailySummary.isEmpty) {
-      return const SizedBox(
-        height: 200,
-        child: Center(child: Text('No data found')),
-      );
-    }
-
+    if (dailySummary.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No data found')));
     final days = dailySummary.keys.toList()..sort();
     final double maxVal = _calculateMaxY(dailySummary, days);
 
@@ -381,163 +250,36 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
                 handleBuiltInTouches: true,
                 touchTooltipData: LineTouchTooltipData(
                   getTooltipColor: (spot) => colorScheme.surfaceContainerHigh,
-                  tooltipBorderRadius: BorderRadius.circular(12),
-                  getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                    return touchedBarSpots.map((barSpot) {
-                      return LineTooltipItem(
-                        '$currency${barSpot.y.toInt()}',
-                        TextStyle(
-                          color: barSpot.bar.color ?? colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      );
-                    }).toList();
-                  },
+                  getTooltipItems: (spots) => spots.map((s) => LineTooltipItem('$currency${s.y.toInt()}', TextStyle(color: s.bar.color, fontWeight: FontWeight.bold))).toList(),
                 ),
               ),
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                horizontalInterval: maxVal / 4,
-                getDrawingHorizontalLine: (value) => FlLine(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.1),
-                  strokeWidth: 1,
-                ),
-              ),
+              gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: maxVal / 4, getDrawingHorizontalLine: (v) => FlLine(color: colorScheme.outlineVariant.withValues(alpha: 0.1))),
               titlesData: FlTitlesData(
                 show: true,
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) => Text(
-                      _formatAmount(value),
-                      style: TextStyle(
-                        color: colorScheme.outline,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 30,
-                    interval: 3,
-                    getTitlesWidget: (val, meta) {
-                      int index = val.toInt();
-                      if (index < 0 || index >= days.length)
-                        return const SizedBox();
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          days[index],
-                          style: TextStyle(
-                            color: colorScheme.primary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: (v, m) => Text(_formatAmount(v), style: TextStyle(color: colorScheme.outline, fontSize: 10)))),
+                bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: 3, getTitlesWidget: (v, m) {
+                  int i = v.toInt();
+                  if (i < 0 || i >= days.length) return const SizedBox();
+                  return Padding(padding: const EdgeInsets.only(top: 8), child: Text(days[i], style: TextStyle(color: colorScheme.primary, fontSize: 10, fontWeight: FontWeight.bold)));
+                })),
               ),
               borderData: FlBorderData(show: false),
               lineBarsData: [
-                LineChartBarData(
-                  spots: List.generate(days.length, (i) {
-                    return FlSpot(
-                      i.toDouble(),
-                      dailySummary[days[i]]!['income'] ?? 0,
-                    );
-                  }),
-                  isCurved: true,
-                  color: colorScheme.primary,
-                  barWidth: 4,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) =>
-                        FlDotCirclePainter(
-                          radius: 3,
-                          color: Colors.white,
-                          strokeWidth: 2,
-                          strokeColor: colorScheme.primary,
-                        ),
-                  ),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      colors: [
-                        colorScheme.primary.withValues(alpha: 0.2),
-                        colorScheme.primary.withValues(alpha: 0),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
-                LineChartBarData(
-                  spots: List.generate(days.length, (i) {
-                    return FlSpot(
-                      i.toDouble(),
-                      dailySummary[days[i]]!['expense'] ?? 0,
-                    );
-                  }),
-                  isCurved: true,
-                  color: colorScheme.error,
-                  barWidth: 4,
-                  isStrokeCapRound: true,
-                  dotData: FlDotData(
-                    show: true,
-                    getDotPainter: (spot, percent, barData, index) =>
-                        FlDotCirclePainter(
-                          radius: 3,
-                          color: Colors.white,
-                          strokeWidth: 2,
-                          strokeColor: colorScheme.error,
-                        ),
-                  ),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    gradient: LinearGradient(
-                      colors: [
-                        colorScheme.error.withValues(alpha: 0.2),
-                        colorScheme.error.withValues(alpha: 0),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
+                LineChartBarData(spots: List.generate(days.length, (i) => FlSpot(i.toDouble(), dailySummary[days[i]]!['income'] ?? 0)), isCurved: true, color: colorScheme.primary, barWidth: 4, belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [colorScheme.primary.withValues(alpha: 0.2), colorScheme.primary.withValues(alpha: 0)], begin: Alignment.topCenter, end: Alignment.bottomCenter))),
+                LineChartBarData(spots: List.generate(days.length, (i) => FlSpot(i.toDouble(), dailySummary[days[i]]!['expense'] ?? 0)), isCurved: true, color: colorScheme.error, barWidth: 4, belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [colorScheme.error.withValues(alpha: 0.2), colorScheme.error.withValues(alpha: 0)], begin: Alignment.topCenter, end: Alignment.bottomCenter))),
               ],
             ),
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          "Dates with Transactions",
-          style: TextStyle(
-            color: colorScheme.outline,
-            fontSize: 11,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
+        Text("Dates with Transactions", style: TextStyle(color: colorScheme.outline, fontSize: 11, fontStyle: FontStyle.italic)),
       ],
     );
   }
 
-  double _calculateMaxY(
-      Map<String, Map<String, double>> summary,
-      List<String> keys,
-      ) {
+  double _calculateMaxY(Map<String, Map<String, double>> summary, List<String> keys) {
     double max = 0;
     for (var key in keys) {
       double inc = summary[key]?['income'] ?? 0;

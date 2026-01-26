@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/constants/default_categories.dart';
 import '../data/category_model.dart';
 
 class CategoryRepository {
@@ -28,7 +29,9 @@ class CategoryRepository {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
 
-    final unsynced = _box.values.where((cat) => !cat.isSynced && !cat.isDeleted).toList();
+    final unsynced = _box.values
+        .where((cat) => !cat.isSynced && !cat.isDeleted)
+        .toList();
     if (unsynced.isNotEmpty) {
       final uploadData = unsynced.map((item) {
         final map = item.toMap();
@@ -59,13 +62,25 @@ class CategoryRepository {
           .from('categories')
           .select()
           .eq('user_id', user.id);
-      for (var cloudData in response) {
-        final cat = CategoryModel.fromMap(cloudData);
-        cat.isSynced = true;
+      if (response.isNotEmpty) {
+        for (var cloudData in response) {
+          final cat = CategoryModel.fromMap(cloudData);
+          cat.isSynced = true;
+          await _box.put(cat.id, cat);
+        }
+      } else {
+        await initDefaultCategories();
+      }
+    } catch (e) {
+      debugPrint("Category download error: $e");
+    }
+  }
+
+  Future<void> initDefaultCategories() async {
+    if (_box.isEmpty) {
+      for (var cat in allDefaultCategories) {
         await _box.put(cat.id, cat);
       }
-        } catch (e) {
-      debugPrint("Category download error: $e");
     }
   }
 }

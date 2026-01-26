@@ -3,7 +3,6 @@ import 'package:wallet_snap/features/home/ui/home_screen.dart';
 import 'package:wallet_snap/features/analytics/ui/graphs_screen.dart';
 import 'package:wallet_snap/features/settings/ui/settings_screen.dart';
 import 'package:wallet_snap/features/transactions/ui/add_transaction_screen.dart';
-
 import '../../transactions/ui/transactions_screen.dart';
 
 class BaseScaffold extends StatefulWidget {
@@ -24,11 +23,11 @@ class BaseScaffoldState extends State<BaseScaffold> {
     }
   }
 
-  static final List<Widget> _widgetOptions = <Widget>[
-    const HomeScreen(),
-    const TransactionsScreen(),
+  static const List<Widget> _widgetOptions = <Widget>[
+    HomeScreen(),
+    TransactionsScreen(),
     GraphsScreen(),
-    const SettingsScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -49,13 +48,11 @@ class BaseScaffoldState extends State<BaseScaffold> {
           ),
           backgroundColor: colorScheme.primary,
           elevation: 4,
-          shape: CircleBorder(),
+          shape: const CircleBorder(),
           child: Icon(Icons.add_rounded, size: 30, color: colorScheme.onPrimary),
         ),
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
@@ -63,20 +60,20 @@ class BaseScaffoldState extends State<BaseScaffold> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildNavItem(context, Icons.home_filled, 'Home', 0),
-            _buildNavItem(context, Icons.receipt_long, 'Transactions', 1),
+            _buildNavItem(Icons.home_filled, 'Home', 0),
+            _buildNavItem(Icons.receipt_long, 'Transactions', 1),
 
             const SizedBox(width: 48),
 
-            _buildNavItem(context, Icons.area_chart_outlined, 'Reports', 2),
-            _buildNavItem(context, Icons.settings, 'Settings', 3),
+            _buildNavItem(Icons.area_chart_outlined, 'Reports', 2),
+            _buildNavItem(Icons.settings, 'Settings', 3),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index) {
     final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _selectedIndex == index;
 
@@ -93,7 +90,7 @@ class BaseScaffoldState extends State<BaseScaffold> {
               Icon(
                 icon,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                size: isSelected? 26 : 24,
+                size: isSelected ? 26 : 24,
               ),
               const SizedBox(height: 2),
               Text(

@@ -76,7 +76,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final allTransactions = ref.watch(transactionProvider);
+    final transactions = ref.watch(filteredTransactionsProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -111,7 +111,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: List.generate(3, (i) => _buildTransactionList(allTransactions, i, colorScheme)),
+        children: List.generate(3, (i) => _buildTransactionList(transactions, i, colorScheme)),
       ),
     );
   }

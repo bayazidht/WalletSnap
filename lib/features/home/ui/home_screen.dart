@@ -18,13 +18,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(transactionProvider.notifier).loadLocalData();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +25,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     final currencySymbol = ref.watch(settingsProvider).currencySymbol;
+    final selectedDate = ref.watch(selectedDateProvider);
+
+    ref.watch(transactionProvider);
     final transactions = ref.watch(filteredTransactionsProvider);
     final todaySummary = ref.watch(todaySummaryProvider);
     final monthSummary = ref.watch(monthSummaryProvider);
@@ -81,7 +77,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             const SizedBox(height: 10),
 
-            _buildMainBalanceCard(context, ref, totalBalance, currencySymbol),
+            _buildMainBalanceCard(
+              context,
+              ref,
+              totalBalance,
+              currencySymbol,
+              selectedDate,
+            ),
             const SizedBox(height: 20),
 
             _buildAIInsightCard(context, colorScheme),
@@ -144,9 +146,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetRef ref,
     double balance,
     String currency,
+    DateTime selectedDate,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final selectedDate = ref.watch(transactionProvider.notifier).selectedDate;
 
     return Container(
       width: double.infinity,
@@ -194,8 +196,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Row(
         children: [
           IconButton(
-            onPressed: () =>
-                ref.read(transactionProvider.notifier).changeMonth(-1),
+            onPressed: () {
+              final current = ref.read(selectedDateProvider);
+              ref.read(selectedDateProvider.notifier).state = DateTime(
+                current.year,
+                current.month - 1,
+              );
+            },
             icon: const Icon(Icons.chevron_left, size: 20),
           ),
           Text(
@@ -203,8 +210,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
           IconButton(
-            onPressed: () =>
-                ref.read(transactionProvider.notifier).changeMonth(1),
+            onPressed: () {
+              final current = ref.read(selectedDateProvider);
+              ref.read(selectedDateProvider.notifier).state = DateTime(
+                current.year,
+                current.month + 1,
+              );
+            },
             icon: const Icon(Icons.chevron_right, size: 20),
           ),
         ],
