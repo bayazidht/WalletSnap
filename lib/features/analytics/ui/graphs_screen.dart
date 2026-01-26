@@ -236,7 +236,7 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
 
   Widget _buildDailyGraph(BuildContext context, Map<String, Map<String, double>> dailySummary, String currency) {
     final colorScheme = Theme.of(context).colorScheme;
-    if (dailySummary.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No data found')));
+    if (dailySummary.isEmpty) return const SizedBox(height: 200, child: Center(child: Text('No Data')));
     final days = dailySummary.keys.toList()..sort();
     final double maxVal = _calculateMaxY(dailySummary, days);
 

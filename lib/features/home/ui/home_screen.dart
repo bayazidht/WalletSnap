@@ -19,6 +19,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
 
+  String getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good morning,';
+    } else if (hour < 17) {
+      return 'Good afternoon,';
+    } else if (hour < 23) {
+      return 'Good evening,';
+    } else {
+      return 'Good night,';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
@@ -45,12 +58,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Good morning,',
+              Text(
+                getGreeting(),
                 style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
               Text(
-                user?.userMetadata?['full_name']?.split(' ')[0] ?? 'WalletSnap',
+                user?.email?.split('@')[0] ?? 'Guest',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

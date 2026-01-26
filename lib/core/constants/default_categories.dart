@@ -4,6 +4,12 @@ import 'package:wallet_snap/features/categories/data/category_model.dart';
 final List<CategoryModel> defaultExpenseCategories = [
   CategoryModel(
     id: Uuid().v4(),
+    name: 'Shopping',
+    iconName: 'shopping',
+    type: CategoryType.expense,
+  ),
+  CategoryModel(
+    id: Uuid().v4(),
     name: 'Food & Drink',
     iconName: 'food',
     type: CategoryType.expense,
@@ -12,12 +18,6 @@ final List<CategoryModel> defaultExpenseCategories = [
     id: Uuid().v4(),
     name: 'Transport',
     iconName: 'transport',
-    type: CategoryType.expense,
-  ),
-  CategoryModel(
-    id: Uuid().v4(),
-    name: 'Shopping',
-    iconName: 'shopping',
     type: CategoryType.expense,
   ),
   CategoryModel(
