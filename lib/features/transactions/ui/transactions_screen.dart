@@ -76,6 +76,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(transactionProvider);
     final transactions = ref.watch(filteredTransactionsProvider);
     final colorScheme = Theme.of(context).colorScheme;
 

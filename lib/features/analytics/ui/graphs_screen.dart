@@ -24,6 +24,8 @@ class _GraphsScreenState extends ConsumerState<GraphsScreen> {
 
     final selectedDate = ref.watch(selectedDateProvider);
     final currencySymbol = ref.watch(settingsProvider).currencySymbol;
+
+    ref.watch(transactionProvider);
     final transactions = ref.watch(filteredTransactionsProvider);
     final categories = ref.watch(categoryProvider);
     final chartData = ref.watch(chartDataProvider);
